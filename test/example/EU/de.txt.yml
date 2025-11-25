@@ -1,0 +1,4 @@
+description: "Germany data"
+has_sidecar_meta_file: true
+users:
+  - djohn
