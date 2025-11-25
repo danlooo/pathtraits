@@ -9,3 +9,7 @@ pathtraits start .
 echo "test" > foo.txt
 echo "test:true" > foo.txt.yml
 ```
+
+## Developing
+
+- normalize data base to store each new trait in a new table, allowing sparse traits
