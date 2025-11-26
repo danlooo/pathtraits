@@ -67,7 +67,7 @@ class TraitsDB:
     def sql_type(value_type):
         sqlite_types = {
             bool: "BOOL",
-            int: "INTEGER",
+            int: "REAL",
             float: "REAL",
             str: "TEXT",
         }
