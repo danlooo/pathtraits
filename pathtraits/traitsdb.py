@@ -127,7 +127,7 @@ class TraitsDB:
         self.put(key, condition=f"path = {path_id}", **kwargs)
 
     def add_pathpair(self, pair: PathPair):
-        path_id = self.put_path_id(os.path.abspath(pair.file_path))
+        path_id = self.put_path_id(os.path.abspath(pair.object_path))
 
         with open(pair.meta_path, "r") as f:
             traits = yaml.safe_load(f)

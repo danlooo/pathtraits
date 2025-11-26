@@ -1,7 +1,6 @@
 import yaml
 import re
 import os
-import pathlib
 from dataclasses import dataclass
 import logging
 
@@ -14,7 +13,7 @@ class PathPair:
     A file and its side car meta data
     """
 
-    file_path: str
+    object_path: str
     meta_path: str
 
     @staticmethod

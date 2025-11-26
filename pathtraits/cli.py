@@ -18,14 +18,29 @@ def main():
 @main.command(help="Update database once, searches for all directories recursively.")
 @click.argument("path", required=True)
 @click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
-def batch(path, verbose):
+@click.option(
+    "--include-files",
+    flag_value=True,
+    default=False,
+    help="Also search for YAML sidecar files",
+)
+def batch(path, verbose, include_files):
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
     db = TraitsDB(path)
-    for dir in os.walk(path):
-        pair = PathPair.find(dir[0])
+    for dirpath, dirnames, filenames in os.walk(path):
+        pair = PathPair.find(dirpath)
         if pair:
             db.add_pathpair(pair)
+        if include_files:
+            yml_files = filter(
+                lambda x: x.endswith("yml") or x.endswith("yaml"), filenames
+            )
+            for file in yml_files:
+                file = os.path.join(dirpath, file)
+                pair = PathPair.find(file)
+                if pair:
+                    db.add_pathpair(pair)
 
 
 @main.command(help="Update database continiously, watches for new or changed files.")
