@@ -1,8 +1,6 @@
 import click
 import inotify.adapters
-import re
 import os
-import glob
 import logging
 from pathtraits.logic import *
 from pathtraits.traitsdb import *

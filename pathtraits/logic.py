@@ -1,4 +1,3 @@
-import yaml
 import re
 import os
 from dataclasses import dataclass
