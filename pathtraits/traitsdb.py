@@ -64,6 +64,16 @@ class TraitsDB:
             return "TRUE" if value else "FALSE"
         return value
 
+    def sql_type(value_type):
+        sqlite_types = {
+            bool: "BOOL",
+            int: "INTEGER",
+            float: "REAL",
+            str: "TEXT",
+        }
+        sql_type = sqlite_types.get(value_type, "TEXT")
+        return sql_type
+
     def put(self, table, condition=None, **kwargs):
         """
         Puts a row into a table. Creates a row if not present, updates otherwise.
@@ -96,26 +106,20 @@ class TraitsDB:
         traits = self.execute(get_traits_query).fetchall()
         self.traits = [x[0] for x in traits]
 
-    def create_trait_table(self, key, col_type):
+    def create_trait_table(self, key, value_type):
         if key in self.traits:
             return
-        sqlite_types = {
-            bool: "BOOL",
-            int: "INTEGER",
-            float: "REAL",
-            str: "TEXT",
-        }
-        if col_type == list:
+        if value_type == list:
             logger.debug(f"ignore list trait {key}")
             return
-        if col_type == dict:
+        if value_type == dict:
             logger.debug(f"ignore dict trait {key}")
             return
-        col_type = sqlite_types.get(col_type, "TEXT")
+        sql_type = TraitsDB.sql_type(value_type)
         add_table_query = f"""
             CREATE TABLE {key} (
                 path INTEGER,
-                {key} {col_type},
+                {key} {sql_type},
                 FOREIGN KEY(path) REFERENCES path(id)
             );
         """
@@ -134,6 +138,9 @@ class TraitsDB:
             if traits is None:
                 return
             for k, v in traits.items():
+                # same YAML key might have different value types
+                # Therefore, add type to key
+                k = f"{k}_{TraitsDB.sql_type(type(v))}"
                 if k not in self.traits:
                     self.create_trait_table(k, type(v))
                 if k in self.traits:

@@ -1,4 +1,5 @@
-description: "Germany data"
+description: Germany data
 has_sidecar_meta_file: true
 users:
   - djohn
+score: zero
