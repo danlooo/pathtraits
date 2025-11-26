@@ -95,16 +95,47 @@ class TraitsDB:
             insert_query = f"INSERT INTO {table} ({keys}) VALUES ({values});"
             self.execute(insert_query)
 
+    def put_data_view(self):
+        """
+        Creates a SQL View with all denormalized traits
+        """
+        self.execute("DROP VIEW IF EXISTS DATA;")
+
+        if self.traits:
+            join_query = " ".join(
+                [
+                    f"LEFT JOIN {x} ON {x}.path = path.id"
+                    for x in self.traits
+                    if x != "path"
+                ]
+            )
+
+            create_view_query = f"""
+                CREATE VIEW data AS
+                SELECT path.path, {', '.join(self.traits)}
+                FROM path
+                {join_query};
+            """
+        else:
+            create_view_query = """
+                CREATE VIEW data AS
+                SELECT path.path
+                FROM path;
+            """
+        self.execute(create_view_query)
+
     def update_traits(self):
         get_traits_query = """
             SELECT name
             FROM sqlite_master
             WHERE type='table'
             AND name NOT LIKE 'sqlite_%'
+            AND name != 'path'
             ORDER BY name;
          """
         traits = self.execute(get_traits_query).fetchall()
         self.traits = [x[0] for x in traits]
+        self.put_data_view()
 
     def create_trait_table(self, key, value_type):
         if key in self.traits:
@@ -134,9 +165,15 @@ class TraitsDB:
         path_id = self.put_path_id(os.path.abspath(pair.object_path))
 
         with open(pair.meta_path, "r") as f:
-            traits = yaml.safe_load(f)
+            try:
+                traits = yaml.safe_load(f)
+            except Exception as e:
+                logging.error(e)
+                return
+
             if traits is None:
                 return
+
             for k, v in traits.items():
                 # same YAML key might have different value types
                 # Therefore, add type to key

@@ -17,17 +17,18 @@ class PathPair:
 
     @staticmethod
     def find(path):
-        logger.debug(f"find path: {path}")
-
         object_path = None
         meta_path = None
 
         yaml_re = re.compile(r"(\.)?(meta)?\.(yaml|yml)$")
-        path_is_meta = yaml_re.search(path)
+        path_is_meta = yaml_re.search(path) and os.path.isfile(path)
 
         if path_is_meta:
             meta_path = path
-            object_path = re.sub(yaml_re, "", path)
+            if os.path.isfile(path):
+                object_path = re.sub(yaml_re, "", path)
+            else:
+                object_path = path
             return PathPair(object_path, meta_path)
         else:
             object_path = path
@@ -40,6 +41,7 @@ class PathPair:
                 ".yaml",
             ]:
                 meta_path = os.path.join(object_path, p)
+
                 if os.path.exists(meta_path):
                     return PathPair(object_path, meta_path)
         return None
