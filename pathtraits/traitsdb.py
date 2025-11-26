@@ -19,7 +19,7 @@ class TraitsDB:
         init_path_table_query = """
             CREATE TABLE IF NOT EXISTS path (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                path text NOT NULL 
+                path text NOT NULL UNIQUE
             );
         """
         self.execute(init_path_table_query)
@@ -64,7 +64,7 @@ class TraitsDB:
             return "TRUE" if value else "FALSE"
         return value
 
-    def put(self, table, condition="TRUE", **kwargs):
+    def put(self, table, condition=None, **kwargs):
         """
         Puts a row into a table. Creates a row if not present, updates otherwise.
         """
@@ -73,7 +73,10 @@ class TraitsDB:
         if self.get(table, condition=condition, **kwargs):
             # update
             values = " , ".join([f"{k}={v}" for (k, v) in escaped_kwargs.items()])
-            update_query = f"UPDATE {table} SET {values} WHERE {condition};"
+            if condition:
+                update_query = f"UPDATE {table} SET {values} WHERE {condition};"
+            else:
+                update_query = f"UPDATE {table} SET {values};"
             self.execute(update_query)
         else:
             # insert
@@ -124,7 +127,7 @@ class TraitsDB:
         self.put(key, condition=f"path = {path_id}", **kwargs)
 
     def add_pathpair(self, pair: PathPair):
-        path_id = self.put_path_id(pair.file_path)
+        path_id = self.put_path_id(os.path.abspath(pair.file_path))
 
         with open(pair.meta_path, "r") as f:
             traits = yaml.safe_load(f)

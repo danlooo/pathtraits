@@ -1,4 +1,7 @@
-# pathtraits: Searchable Metadata DB of Files and Dirctories
+# pathtraits: Annotate files and directories
+
+Create a YAML file "meta.yml" inside a directory to annotate all files in that directory with any attributes.
+The data will be collected in a SQLite database to query and visualize.
 
 ## Get Started
 

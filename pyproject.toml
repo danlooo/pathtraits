@@ -19,4 +19,4 @@ build-backend = "poetry.core.masonry.api"
 pythonpath = ["."]
 
 [tool.poetry.scripts]
-pathtraits = "pathtraits.main:main"
+pathtraits = "pathtraits.cli:main"

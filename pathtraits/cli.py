@@ -2,12 +2,12 @@ import click
 import inotify.adapters
 import re
 import os
+import glob
 import logging
 from pathtraits.logic import *
 from pathtraits.traitsdb import *
 
 logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.DEBUG)
 
 
 @click.group()
@@ -15,15 +15,32 @@ def main():
     pass
 
 
-@main.command()
+@main.command(help="Update database once, searches for all directories recursively.")
 @click.argument("path", required=True)
-def start(path):
+@click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
+def batch(path, verbose):
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    db = TraitsDB(path)
+    for dir in os.walk(path):
+        pair = PathPair.find(dir[0])
+        if pair:
+            db.add_pathpair(pair)
+
+
+@main.command(help="Update database continiously, watches for new or changed files.")
+@click.argument("path", required=True)
+@click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
+def watch(path, verbose):
     print("starting...")
+    print(verbose)
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
     i = inotify.adapters.InotifyTree(path)
     db = TraitsDB(path)
     print("ready")
 
-    yaml_re = re.compile(r"\.(yaml|yml)$")
     for event in i.event_gen(yield_nones=False):
         (_, type_names, dir_path, filename) = event
 
