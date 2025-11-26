@@ -45,11 +45,10 @@ def batch(path, verbose, include_files):
 @click.argument("path", required=True)
 @click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
 def watch(path, verbose):
-    print("starting...")
-    print(verbose)
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
 
+    print("starting...")
     i = inotify.adapters.InotifyTree(path)
     db = TraitsDB(path)
     print("ready")
