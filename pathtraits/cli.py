@@ -14,7 +14,7 @@ def main():
 
 
 @main.command(help="Update database once, searches for all directories recursively.")
-@click.argument("path", required=True)
+@click.argument("path", required=True, type=click.Path(exists=True))
 @click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
 @click.option(
     "--include-files",
@@ -42,7 +42,7 @@ def batch(path, verbose, include_files):
 
 
 @main.command(help="Update database continiously, watches for new or changed files.")
-@click.argument("path", required=True)
+@click.argument("path", required=True, type=click.Path(exists=True))
 @click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
 def watch(path, verbose):
     if verbose:
@@ -63,6 +63,35 @@ def watch(path, verbose):
         pair = PathPair.find(path)
         if pair:
             db.add_pathpair(pair)
+
+
+@main.command(help="Get traits of a given path")
+@click.argument("path", required=True, type=click.Path(exists=True))
+@click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
+def get(path, verbose):
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
+    abs_path = os.path.abspath(path)
+    leaf_dir = os.path.dirname(abs_path) if os.path.isfile(abs_path) else abs_path
+    dirs = leaf_dir.split("/")
+    for i in reversed(range(0, len(dirs))):
+        if i == 0:
+            db_dir = "/"
+        else:
+            db_dir = "/".join(dirs[0 : i + 1])
+
+        db_path = db_dir + "/.pathtraits.db"
+        if not os.path.exists(db_path):
+            continue
+
+        # TODO: recursive inheritance of pathtraits
+        db = TraitsDB(db_dir)
+        data = db.get("data", path=abs_path)
+        print(yaml.safe_dump(data))
+        return
+
+    KeyError(f"No pathtraits database found in {abs_path} and its parents.")
 
 
 if __name__ == "__main__":

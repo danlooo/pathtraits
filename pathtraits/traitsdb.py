@@ -43,7 +43,14 @@ class TraitsDB:
             }
             condition = " AND ".join([f"{k}={v}" for (k, v) in escaped_kwargs.items()])
         get_row_query = f"SELECT {cols} FROM {table} WHERE {condition} LIMIT 1;"
-        res = self.execute(get_row_query).fetchone()
+        response = self.execute(get_row_query)
+        values = response.fetchone()
+
+        if values is None:
+            return None
+
+        keys = map(lambda x: x[0], response.description)
+        res = {k: v for k, v in zip(keys, values)}
         return res
 
     def put_path_id(self, path):
@@ -54,7 +61,7 @@ class TraitsDB:
         else:
             # create
             self.put("path", path=path)
-            path_id = self.get("path", path=path, cols="id")[0]
+            path_id = self.get("path", path=path, cols="id")["id"]
             return path_id
 
     def escape(value):
