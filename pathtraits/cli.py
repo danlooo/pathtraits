@@ -1,6 +1,7 @@
 import click
 import inotify.adapters
 import os
+import sys
 import logging
 from pathtraits.logic import *
 from pathtraits.traitsdb import *
@@ -75,6 +76,9 @@ def get(path, verbose):
     abs_path = os.path.abspath(path)
     leaf_dir = os.path.dirname(abs_path) if os.path.isfile(abs_path) else abs_path
     dirs = leaf_dir.split("/")
+
+    # find db path
+    found_db = False
     for i in reversed(range(0, len(dirs))):
         if i == 0:
             db_dir = "/"
@@ -82,16 +86,43 @@ def get(path, verbose):
             db_dir = "/".join(dirs[0 : i + 1])
 
         db_path = db_dir + "/.pathtraits.db"
-        if not os.path.exists(db_path):
+
+        if os.path.exists(db_path):
+            db = TraitsDB(db_dir)
+            found_db = True
+            logging.debug(f"Found TraitsDB at {db_path}")
+            break
+        else:
             continue
+    if not found_db:
+        return Exception(
+            f"No pathtraits database found for {abs_path} and its parents."
+        )
 
-        # TODO: recursive inheritance of pathtraits
-        db = TraitsDB(db_dir)
-        data = db.get("data", path=abs_path)
-        print(yaml.safe_dump(data))
-        return
+    # get traits from path and its parents
+    dirs_data = []
+    data = db.get("data", path=abs_path)
+    if data:
+        dirs_data.append(data)
+    for i in reversed(range(0, len(dirs))):
+        cur_path = "/".join(dirs[0 : i + 1])
+        data = db.get("data", path=cur_path)
+        if data:
+            dirs_data.append(data)
 
-    KeyError(f"No pathtraits database found in {abs_path} and its parents.")
+    # inherit traits: children overwrite parent path traits
+    res = {}
+    for cur_data in reversed(dirs_data):
+        for k, v in cur_data.items():
+            if v and k != "path":
+                res[k] = v
+
+    # output
+    if len(res) > 0:
+        print(yaml.safe_dump(res))
+    else:
+        print(f"No traits found for path {path}", file=sys.stderr)
+    return
 
 
 if __name__ == "__main__":
