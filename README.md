@@ -7,7 +7,7 @@ The data will be collected in a SQLite database to query and visualize.
 
 ```sh
 python -m pip install 'pathtraits @ git+https://github.com/danlooo/pathtraits'
-pathtraits start .
+pathtraits watch .
 
 echo "test" > foo.txt
 echo "test:true" > foo.txt.yml
