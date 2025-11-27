@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pathtraits"
-version = "0.1.0"
+version = "0.1.1"
 description = "Attributes of files and directories stored in YAML sidecar files"
 authors = ["Daniel Loos"]
 license = "MIT"
