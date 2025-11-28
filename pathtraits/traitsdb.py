@@ -175,7 +175,7 @@ class TraitsDB:
             try:
                 traits = yaml.safe_load(f)
             except Exception as e:
-                logging.error(e)
+                logging.debug(f"Ignore meta file {f}. Error message: {e}")
                 return
 
             if traits is None:
