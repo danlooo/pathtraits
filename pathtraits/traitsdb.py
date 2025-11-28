@@ -12,8 +12,8 @@ class TraitsDB:
     cursor = None
     traits = []
 
-    def __init__(self, path):
-        db_path = os.path.join(path, ".pathtraits.db")
+    def __init__(self, db_path):
+        db_path = os.path.join(db_path)
         self.cursor = sqlite3.connect(db_path, autocommit=True).cursor()
 
         init_path_table_query = """

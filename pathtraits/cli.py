@@ -16,17 +16,26 @@ def main():
 
 @main.command(help="Update database once, searches for all directories recursively.")
 @click.argument("path", required=True, type=click.Path(exists=True))
-@click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
+@click.option(
+    "--db-path",
+    default=None,
+    type=click.Path(file_okay=True, dir_okay=False),
+)
+@click.option("-v", "--verbose", flag_value=True, default=False)
 @click.option(
     "--include-files",
     flag_value=True,
     default=False,
     help="Also search for YAML sidecar files",
 )
-def batch(path, verbose, include_files):
+def batch(path, db_path, verbose, include_files):
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
-    db = TraitsDB(path)
+
+    if db_path is None:
+        db_path = path + "/.pathtraits.db"
+    db = TraitsDB(db_path)
+
     for dirpath, dirnames, filenames in os.walk(path):
         pair = PathPair.find(dirpath)
         if pair:
@@ -44,14 +53,21 @@ def batch(path, verbose, include_files):
 
 @main.command(help="Update database continiously, watches for new or changed files.")
 @click.argument("path", required=True, type=click.Path(exists=True))
+@click.option(
+    "--db-path",
+    default=None,
+    type=click.Path(file_okay=True, dir_okay=False),
+)
 @click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
-def watch(path, verbose):
+def watch(path, db_path, verbose):
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
 
     print("starting...")
     i = inotify.adapters.InotifyTree(path)
-    db = TraitsDB(path)
+    if db_path is None:
+        db_path = path + "/.pathtraits.db"
+    db = TraitsDB(db_path)
     print("ready")
 
     for event in i.event_gen(yield_nones=False):
@@ -68,6 +84,11 @@ def watch(path, verbose):
 
 @main.command(help="Get traits of a given path")
 @click.argument("path", required=True, type=click.Path(exists=True))
+@click.option(
+    "--db-path",
+    default=None,
+    type=click.Path(file_okay=True, dir_okay=False),
+)
 @click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
 def get(path, verbose):
     if verbose:
@@ -77,27 +98,31 @@ def get(path, verbose):
     leaf_dir = os.path.dirname(abs_path) if os.path.isfile(abs_path) else abs_path
     dirs = leaf_dir.split("/")
 
-    # find db path
-    found_db = False
-    for i in reversed(range(0, len(dirs))):
-        if i == 0:
-            db_dir = "/"
-        else:
-            db_dir = "/".join(dirs[0 : i + 1])
+    if db_path is None:
+        db_path = path + "/.pathtraits.db"
+        db = TraitsDB(db_path)
+    else:
+        # find db path
+        found_db = False
+        for i in reversed(range(0, len(dirs))):
+            if i == 0:
+                db_dir = "/"
+            else:
+                db_dir = "/".join(dirs[0 : i + 1])
 
-        db_path = db_dir + "/.pathtraits.db"
+            db_path = db_dir + "/.pathtraits.db"
 
-        if os.path.exists(db_path):
-            db = TraitsDB(db_dir)
-            found_db = True
-            logging.debug(f"Found TraitsDB at {db_path}")
-            break
-        else:
-            continue
-    if not found_db:
-        return Exception(
-            f"No pathtraits database found for {abs_path} and its parents."
-        )
+            if os.path.exists(db_path):
+                db = TraitsDB(db_dir)
+                found_db = True
+                logging.debug(f"Found TraitsDB at {db_path}")
+                break
+            else:
+                continue
+        if not found_db:
+            return Exception(
+                f"No pathtraits database found for {abs_path} and its parents."
+            )
 
     # get traits from path and its parents
     dirs_data = []
