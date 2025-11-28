@@ -58,7 +58,7 @@ def batch(path, db_path, verbose, include_files):
     default=None,
     type=click.Path(file_okay=True, dir_okay=False),
 )
-@click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
+@click.option("-v", "--verbose", flag_value=True, default=False)
 def watch(path, db_path, verbose):
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
@@ -89,7 +89,7 @@ def watch(path, db_path, verbose):
     default=None,
     type=click.Path(file_okay=True, dir_okay=False),
 )
-@click.option("-v", "--verbose", "verbose", flag_value=True, default=False)
+@click.option("-v", "--verbose", flag_value=True, default=False)
 def get(path, verbose):
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
