@@ -184,7 +184,7 @@ class TraitsDB:
                 return
 
             # invalid trait yml file e.g. empty or no key-value pair
-            if type(None) != dict:
+            if type(traits) != dict:
                 return
 
             # put path in db only if there are traits
