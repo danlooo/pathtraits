@@ -180,7 +180,7 @@ class TraitsDB:
             try:
                 traits = yaml.safe_load(f)
             except Exception as e:
-                logging.debug(f"Ignore meta file {f}. Error message: {e}")
+                logging.debug(f"ignore meta file {f}. Error message: {e}")
                 return
 
             # invalid trait yml file e.g. empty or no key-value pair
