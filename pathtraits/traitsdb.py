@@ -183,7 +183,8 @@ class TraitsDB:
                 logging.debug(f"Ignore meta file {f}. Error message: {e}")
                 return
 
-            if traits is None or len(traits) == 0:
+            # invalid trait yml file e.g. empty or no key-value pair
+            if type(None) != dict:
                 return
 
             # put path in db only if there are traits
