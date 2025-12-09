@@ -32,9 +32,11 @@ class TraitsDB:
         self.update_traits()
 
     def execute(self, query):
-        logger.debug(query)
-        res = self.cursor.execute(query)
-        return res
+        try:
+            res = self.cursor.execute(query)
+            return res
+        except Exception as e:
+            logger.debug(f"Ignore failed query {query}")
 
     def get(self, table, cols="*", condition=None, **kwargs):
         if not condition:
