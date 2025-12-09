@@ -72,6 +72,11 @@ class TraitsDB:
         return value
 
     def sql_type(value_type):
+        if value_type == list:
+            return
+        if value_type == dict:
+            return
+
         sqlite_types = {
             bool: "BOOL",
             int: "REAL",
