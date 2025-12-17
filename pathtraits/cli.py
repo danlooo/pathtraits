@@ -15,17 +15,28 @@ def main():
     pass
 
 
-def apply_dir(dir_path: str, func: Callable = print, include_files: bool = False):
-    """
-    Apply a function on every node of a directory tree recursiveley
-    """
-    with os.scandir(dir_path) as ents:
+def scan_meta_yml(path, yml_paths=[]):
+    yml_extensions = [
+        "meta.yml",
+        "meta.yaml",
+        ".meta.yml",
+        ".meta.yaml",
+        ".yml",
+        ".yaml",
+    ]
+    # faster than os.walk
+    with os.scandir(path) as ents:
         for e in ents:
             if e.is_dir():
-                apply_dir(e.path, func, include_files)
-                func(e.path)
-            elif include_files:
-                func(e.path)
+                scan_meta_yml(e.path, yml_paths)
+            else:
+                for yml_extension in yml_extensions:
+                    if e.path.endswith(yml_extension):
+                        object_path = e.path.replace(f".{yml_extension}", "")
+                        pair = PathPair(object_path, e.path)
+                        yml_paths.append(pair)
+                        break
+    return yml_paths
 
 
 @main.command(help="Update database once, searches for all directories recursively.")
@@ -49,14 +60,9 @@ def batch(path, db_path, verbose, include_files):
     if db_path is None:
         db_path = path + "/.pathtraits.db"
     db = TraitsDB(db_path)
-
-    def do_path(path):
-        pair = PathPair.find(path)
-        if pair:
-            db.add_pathpair(pair)
-
-    apply_dir(path, do_path, include_files)
-    return
+    pathpairs = scan_meta_yml(path)
+    for pathpair in pathpairs:
+        db.add_pathpair(pathpair)
 
 
 @main.command(help="Update database continiously, watches for new or changed files.")
@@ -84,6 +90,8 @@ def watch(path, db_path, verbose):
         if not type_names.__contains__("IN_CLOSE_WRITE"):
             continue
 
+        # watch afor both yml and object files
+        # yml file might be created first and will be ignored
         path = os.path.join(dir_path, filename)
         pair = PathPair.find(path)
         if pair:
