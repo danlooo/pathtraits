@@ -1,7 +1,7 @@
 import sqlite3
 import os
 import yaml
-from pathtraits.logic import *
+from pathtraits.pathpair import *
 from dataclasses import dataclass
 import logging
 

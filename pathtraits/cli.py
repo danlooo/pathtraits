@@ -3,8 +3,9 @@ import inotify.adapters
 import os
 import sys
 import logging
-from pathtraits.logic import *
+from pathtraits.pathpair import *
 from pathtraits.traitsdb import *
+from collections.abc import Callable
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +13,19 @@ logger = logging.getLogger(__name__)
 @click.group()
 def main():
     pass
+
+
+def apply_dir(dir_path: str, func: Callable = print, include_files: bool = False):
+    """
+    Apply a function on every node of a directory tree recursiveley
+    """
+    with os.scandir(dir_path) as ents:
+        for e in ents:
+            if e.is_dir():
+                apply_dir(e.path, func, include_files)
+                func(e.path)
+            elif include_files:
+                func(e.path)
 
 
 @main.command(help="Update database once, searches for all directories recursively.")
@@ -36,19 +50,13 @@ def batch(path, db_path, verbose, include_files):
         db_path = path + "/.pathtraits.db"
     db = TraitsDB(db_path)
 
-    for dirpath, dirnames, filenames in os.walk(path):
-        pair = PathPair.find(dirpath)
+    def do_path(path):
+        pair = PathPair.find(path)
         if pair:
             db.add_pathpair(pair)
-        if include_files:
-            yml_files = filter(
-                lambda x: x.endswith("yml") or x.endswith("yaml"), filenames
-            )
-            for file in yml_files:
-                file = os.path.join(dirpath, file)
-                pair = PathPair.find(file)
-                if pair:
-                    db.add_pathpair(pair)
+
+    apply_dir(path, do_path, include_files)
+    return
 
 
 @main.command(help="Update database continiously, watches for new or changed files.")
