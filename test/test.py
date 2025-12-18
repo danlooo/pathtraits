@@ -10,13 +10,23 @@ import pathtraits.db
 import pathtraits.scan
 
 
-class TestCLI(unittest.TestCase):
-    def test(self):
+class TestMain(unittest.TestCase):
+    def test_example(self):
         db_path = tempfile.mkstemp()[1]
         pathtraits.scan.batch("test/example", db_path, False)
 
         db = pathtraits.db.TraitsDB(db_path)
         self.assertTrue(db is not None)
+
+        source = db.get_dict("test/example/Europe/de.txt")
+        target = {
+            "description_TEXT": "Germany data",
+            "has_sidecar_meta_file_BOOL": 1,
+            "is_example_BOOL": 1,
+            "score_TEXT": "zero",
+        }
+        for k, v in target.items():
+            self.assertEqual(source[k], v)
 
 
 if __name__ == "__main__":
