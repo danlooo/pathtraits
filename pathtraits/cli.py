@@ -1,8 +1,11 @@
 import click
 import logging
 from pathtraits import scan, access
+import os
 
 logger = logging.getLogger(__name__)
+
+DB_PATH = os.environ.get("PATHTRAITS_DB_PATH", os.path.expanduser("~/.pathtraits.db"))
 
 
 @click.group()
@@ -14,7 +17,7 @@ def main():
 @click.argument("path", required=True, type=click.Path(exists=True))
 @click.option(
     "--db-path",
-    default=None,
+    default=DB_PATH,
     type=click.Path(file_okay=True, dir_okay=False),
 )
 @click.option("-v", "--verbose", flag_value=True, default=False)
@@ -26,7 +29,7 @@ def batch(path, db_path, verbose):
 @click.argument("path", required=True, type=click.Path(exists=True))
 @click.option(
     "--db-path",
-    default=None,
+    default=DB_PATH,
     type=click.Path(file_okay=True, dir_okay=False),
 )
 @click.option("-v", "--verbose", flag_value=True, default=False)
@@ -38,12 +41,12 @@ def watch(path, db_path, verbose):
 @click.argument("path", required=True, type=click.Path(exists=True))
 @click.option(
     "--db-path",
-    default=None,
+    default=DB_PATH,
     type=click.Path(file_okay=True, dir_okay=False),
 )
 @click.option("-v", "--verbose", flag_value=True, default=False)
-def get(path, verbose):
-    access.get(path, verbose)
+def get(path, db_path, verbose):
+    access.get(path, db_path, verbose)
 
 
 if __name__ == "__main__":
