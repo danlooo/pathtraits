@@ -11,20 +11,24 @@ yaml_re = re.compile(r"(\.)?(meta)?\.(yaml|yml)$")
 
 
 def scan_meta_yml(path, pathpairs=[]):
-    # faster than os.walk
-    with os.scandir(path) as ents:
-        for e in ents:
-            if e.is_dir():
-                scan_meta_yml(e.path, pathpairs)
-            else:
-                if not yaml_re.search(e.path):
-                    continue
-                object_path = re.sub(yaml_re, "", e.path)
-                if not os.path.exists(object_path):
-                    continue
-                pair = PathPair(object_path, e.path)
-                pathpairs.append(pair)
-    return pathpairs
+    try:
+        # faster than os.walk
+        with os.scandir(path) as ents:
+            for e in ents:
+                if e.is_dir():
+                    scan_meta_yml(e.path, pathpairs)
+                else:
+                    if not yaml_re.search(e.path):
+                        continue
+                    object_path = re.sub(yaml_re, "", e.path)
+                    if not os.path.exists(object_path):
+                        continue
+                    pair = PathPair(object_path, e.path)
+                    pathpairs.append(pair)
+        return pathpairs
+    except Exception as ex:
+        logger.error(f"skip {path}: {ex}")
+        return pathpairs
 
 
 def batch(path, db_path, verbose):
