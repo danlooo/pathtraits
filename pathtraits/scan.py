@@ -3,33 +3,29 @@ import os
 import logging
 from pathtraits.pathpair import *
 from pathtraits.db import *
+import re
 
 logger = logging.getLogger(__name__)
 
+yaml_re = re.compile(r"(\.)?(meta)?\.(yaml|yml)$")
 
-def scan_meta_yml(path, yml_paths=[]):
-    yml_extensions = [
-        "meta.yml",
-        "meta.yaml",
-        ".meta.yml",
-        ".meta.yaml",
-        ".yml",
-        ".yaml",
-    ]
+
+def scan_meta_yml(path, pathpairs=[]):
     # faster than os.walk
     with os.scandir(path) as ents:
         for e in ents:
             if e.is_dir():
-                scan_meta_yml(e.path, yml_paths)
+                scan_meta_yml(e.path, pathpairs)
             else:
-                for yml_extension in yml_extensions:
-                    if e.name.endswith(yml_extension):
-                        object_path = e.path.replace(f"{yml_extension}", "")
-                        pair = PathPair(object_path, e.path)
-                        yml_paths.append(pair)
-                        logger.debug(f"found pathpair {pair}")
-                        break
-    return yml_paths
+                if not yaml_re.search(e.path):
+                    continue
+                object_path = re.sub(yaml_re, "", e.path)
+                if not os.path.exists(object_path):
+                    continue
+                logger.debug(f"found pathpair: object: {object_path}, meta: {e.path}")
+                pair = PathPair(object_path, e.path)
+                pathpairs.append(pair)
+    return pathpairs
 
 
 def batch(path, db_path, verbose):
