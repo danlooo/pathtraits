@@ -22,7 +22,6 @@ def scan_meta_yml(path, pathpairs=[]):
                 object_path = re.sub(yaml_re, "", e.path)
                 if not os.path.exists(object_path):
                     continue
-                logger.debug(f"found pathpair: object: {object_path}, meta: {e.path}")
                 pair = PathPair(object_path, e.path)
                 pathpairs.append(pair)
     return pathpairs
@@ -62,4 +61,5 @@ def watch(path, db_path, verbose):
         path = os.path.join(dir_path, filename)
         pair = PathPair.find(path)
         if pair:
+            logger.debug(f"add pathpair: {pair}")
             db.add_pathpair(pair)
