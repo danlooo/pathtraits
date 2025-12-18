@@ -18,14 +18,8 @@ def main():
     type=click.Path(file_okay=True, dir_okay=False),
 )
 @click.option("-v", "--verbose", flag_value=True, default=False)
-@click.option(
-    "--include-files",
-    flag_value=True,
-    default=False,
-    help="Also search for YAML sidecar files",
-)
-def batch(path, db_path, verbose, include_files):
-    scan.batch(path, db_path, verbose, include_files)
+def batch(path, db_path, verbose):
+    scan.batch(path, db_path, verbose)
 
 
 @main.command(help="Update database continiously, watches for new or changed files.")

@@ -23,15 +23,16 @@ def scan_meta_yml(path, yml_paths=[]):
                 scan_meta_yml(e.path, yml_paths)
             else:
                 for yml_extension in yml_extensions:
-                    if e.path.endswith(yml_extension):
-                        object_path = e.path.replace(f".{yml_extension}", "")
+                    if e.name.endswith(yml_extension):
+                        object_path = e.path.replace(f"{yml_extension}", "")
                         pair = PathPair(object_path, e.path)
                         yml_paths.append(pair)
+                        logger.debug(f"found pathpair {pair}")
                         break
     return yml_paths
 
 
-def batch(path, db_path, verbose, include_files):
+def batch(path, db_path, verbose):
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
 
