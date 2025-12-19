@@ -4,6 +4,7 @@
 Test module
 """
 
+import os
 import unittest
 import tempfile
 import pathtraits.db
@@ -32,6 +33,7 @@ class TestMain(unittest.TestCase):
         source = len(db.execute("SELECT * FROM data;").fetchall())
         target = 4
         self.assertEqual(source, target)
+        os.remove(db_path)
 
 
 if __name__ == "__main__":
