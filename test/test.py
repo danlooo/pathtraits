@@ -23,8 +23,8 @@ class TestMain(unittest.TestCase):
         source = pathtraits.access.get_dict(db, "test/example/EU/de.txt")
         target = {
             "description_TEXT": "Germany data",
-            "has_sidecar_meta_file_BOOL": 1,
-            "is_example_BOOL": 1,
+            "has_sidecar_meta_file_BOOL": True,
+            "is_example_BOOL": True,
             "score_TEXT": "zero",
             "score_REAL": 3.5,
         }
