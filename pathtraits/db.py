@@ -38,6 +38,7 @@ class TraitsDB:
         self.execute(init_path_index_query)
         self.update_traits()
 
+    # pylint: disable=R1710
     def execute(self, query):
         """
         Execute a SQLite query
@@ -74,7 +75,7 @@ class TraitsDB:
             return None
 
         keys = map(lambda x: x[0], response.description)
-        res = {k: v for k, v in zip(keys, values)}
+        res = dict(zip(keys, values))
         return res
 
     def get_dict(self, path):

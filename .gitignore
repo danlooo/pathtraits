@@ -142,5 +142,5 @@ dmypy.json
 .DS_Store
 
 # etc
-run.sh
+/run.*
 *.db

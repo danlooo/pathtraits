@@ -1,3 +1,5 @@
+# pylint: disable-all
+
 import sqlite3
 import pandas as pd
 

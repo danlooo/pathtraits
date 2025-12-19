@@ -41,18 +41,18 @@ class PathPair:
             else:
                 object_path = path
             return PathPair(object_path, meta_path)
-        else:
-            object_path = path
-            for p in [
-                "meta.yml",
-                "meta.yaml",
-                ".meta.yml",
-                ".meta.yaml",
-                ".yml",
-                ".yaml",
-            ]:
-                meta_path = os.path.join(object_path, p)
 
-                if os.path.exists(meta_path):
-                    return PathPair(object_path, meta_path)
+        object_path = path
+        for p in [
+            "meta.yml",
+            "meta.yaml",
+            ".meta.yml",
+            ".meta.yaml",
+            ".yml",
+            ".yaml",
+        ]:
+            meta_path = os.path.join(object_path, p)
+
+            if os.path.exists(meta_path):
+                return PathPair(object_path, meta_path)
         return None
