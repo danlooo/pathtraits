@@ -6,13 +6,21 @@ The data will be collected in a SQLite database to query and visualize.
 ## Get Started
 
 ```sh
-python -m pip install 'pathtraits @ git+https://github.com/danlooo/pathtraits'
-pathtraits watch .
+# install
+python -m pip install pathtraits
 
+# create some test data
 echo "test" > foo.txt
-echo "test:true" > foo.txt.yml
+echo "test: true" > foo.txt.yml
+
+# create database
+pathtraits batch .
+
+# query traits
+pathtraits get foo.txt
 ```
 
 ## Developing
 
-- normalize data base to store each new trait in a new table, allowing sparse traits
+- use Pylint 
+- normalize data base to 3NF to store each new trait in a new table, allowing sparse traits
