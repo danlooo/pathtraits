@@ -1,7 +1,11 @@
+"""
+Module to describe a file and its side car meta data
+"""
+
+import logging
 import re
 import os
 from dataclasses import dataclass
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +21,13 @@ class PathPair:
 
     @staticmethod
     def find(path):
+        """
+        Find the object file and its side car meta data file.
+        Will determine whether a side car file exists.
+        Returns None if there is no corresponding meta data file or object file.
+
+        :param path: any path
+        """
         object_path = None
         meta_path = None
 
