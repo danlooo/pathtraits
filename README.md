@@ -5,6 +5,11 @@ The data will be collected in a SQLite database to query and visualize.
 
 ## Get Started
 
+Pathtraits are attributes of files and directories stores in YAML side car files.
+Pathtraits of parent directories are inherited for a given path and can be overwritten by those of child directories.
+Pathtraits can be either of type string, int, or real.
+
+
 ```sh
 # install
 python -m pip install pathtraits
