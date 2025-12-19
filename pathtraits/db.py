@@ -1,14 +1,21 @@
+"""
+Module to handle the traits database
+"""
+
+import logging
 import sqlite3
 import os
 import yaml
-from pathtraits.pathpair import *
-from dataclasses import dataclass
-import logging
+from pathtraits.pathpair import PathPair
 
 logger = logging.getLogger(__name__)
 
 
 class TraitsDB:
+    """
+    Database of pathtrait in 3NF with view of all joined trait tables
+    """
+
     cursor = None
     traits = []
 
@@ -32,16 +39,31 @@ class TraitsDB:
         self.update_traits()
 
     def execute(self, query):
+        """
+        Execute a SQLite query
+
+        :param self: this database
+        :param query: SQLite query string
+        """
         try:
             res = self.cursor.execute(query)
             return res
-        except Exception as e:
-            logger.debug(f"Ignore failed query {query}")
+        except sqlite3.DatabaseError:
+            logger.debug("Ignore failed query %s", query)
 
     def get(self, table, cols="*", condition=None, **kwargs):
+        """
+        Get a row from a table
+
+        :param self: this database
+        :param table: table name
+        :param cols: colums to get as a string to be put after SELECT. All by default.
+        :param condition: SQL condition string to be put after WHERE. Will overweite kwargs
+        """
         if not condition:
             escaped_kwargs = {
-                k: v if type(v) != str else f"'{v}'" for (k, v) in kwargs.items()
+                k: v if not isinstance(v, str) else f"'{v}'"
+                for (k, v) in kwargs.items()
             }
             condition = " AND ".join([f"{k}={v}" for (k, v) in escaped_kwargs.items()])
         get_row_query = f"SELECT {cols} FROM {table} WHERE {condition} LIMIT 1;"
@@ -56,6 +78,12 @@ class TraitsDB:
         return res
 
     def get_dict(self, path):
+        """
+        Get traits for a path as a Python dictionary
+
+        :param self: this database
+        :param path: path to get traits for
+        """
         abs_path = os.path.abspath(path)
         leaf_dir = os.path.dirname(abs_path) if os.path.isfile(abs_path) else abs_path
         dirs = leaf_dir.split("/")
@@ -80,24 +108,43 @@ class TraitsDB:
         return res
 
     def put_path_id(self, path):
+        """
+        Docstring for put_path_id
+
+        :param self: this database
+        :param path: path to put to the data base
+        :returns: the id of that path
+        """
         get_row_query = f"SELECT id FROM path WHERE path = '{path}' LIMIT 1;"
         res = self.execute(get_row_query).fetchone()
         if res:
             return res[0]
-        else:
-            # create
-            self.put("path", path=path)
-            path_id = self.get("path", path=path, cols="id")["id"]
-            return path_id
+        # create
+        self.put("path", path=path)
+        path_id = self.get("path", path=path, cols="id")["id"]
+        return path_id
 
+    @staticmethod
     def escape(value):
-        if type(value) == str:
+        """
+        Escape a python value for SQL insertion
+
+        :param value: value to be escaped
+        """
+        if isinstance(value, str):
             return f"'{value}'"
-        if type(value) == bool:
+        if isinstance(value, bool):
             return "TRUE" if value else "FALSE"
         return value
 
+    @staticmethod
+    # pylint: disable=R1710
     def sql_type(value_type):
+        """
+        Translate a Python type to a SQLite type
+
+        :param value_type: python type to translate
+        """
         if value_type == list:
             return
         if value_type == dict:
@@ -163,6 +210,9 @@ class TraitsDB:
         self.execute(create_view_query)
 
     def update_traits(self):
+        """
+        Get all traits from the database
+        """
         get_traits_query = """
             SELECT name
             FROM sqlite_master
@@ -175,40 +225,62 @@ class TraitsDB:
         self.traits = [x[0] for x in traits]
         self.put_data_view()
 
-    def create_trait_table(self, key, value_type):
-        if key in self.traits:
+    def create_trait_table(self, trait_name, value_type):
+        """
+        Create a trait table if it does not exist
+
+        :param self: this database
+        :param key: trait name
+        :param value_type: trait value
+        """
+        if trait_name in self.traits:
             return
         if value_type == list:
-            logger.debug(f"ignore list trait {key}")
+            logger.debug("ignore list trait %s", trait_name)
             return
         if value_type == dict:
-            logger.debug(f"ignore dict trait {key}")
+            logger.debug("ignore dict trait %s", trait_name)
             return
         sql_type = TraitsDB.sql_type(value_type)
         add_table_query = f"""
-            CREATE TABLE {key} (
+            CREATE TABLE {trait_name} (
                 path INTEGER,
-                {key} {sql_type},
+                {trait_name} {sql_type},
                 FOREIGN KEY(path) REFERENCES path(id)
             );
         """
         self.execute(add_table_query)
         self.update_traits()
 
-    def put_trait(self, path_id, key, value):
-        kwargs = {"path": path_id, key: value}
-        self.put(key, condition=f"path = {path_id}", **kwargs)
+    def put_trait(self, path_id, trait_name, value):
+        """
+        Put a trait to the database
+
+        :param self: this database
+        :param path_id: id of the path in the path table
+        :param key: trait name
+        :param value: trait value
+        """
+        kwargs = {"path": path_id, trait_name: value}
+        self.put(trait_name, condition=f"path = {path_id}", **kwargs)
 
     def add_pathpair(self, pair: PathPair):
-        with open(pair.meta_path, "r") as f:
+        """
+        Add a PathPair to the database
+
+        :param self: this database
+        :param pair: the pathpair to be added
+        :type pair: PathPair
+        """
+        with open(pair.meta_path, "r", encoding="utf-8") as f:
             try:
                 traits = yaml.safe_load(f)
-            except Exception as e:
-                logging.debug(f"ignore meta file {f}. Error message: {e}")
+            except (yaml.YAMLError, OSError) as e:
+                logging.debug("ignore meta file %s. Error message: %s", f, e)
                 return
 
             # invalid trait yml file e.g. empty or no key-value pair
-            if type(traits) != dict:
+            if not isinstance(traits, dict):
                 return
 
             # put path in db only if there are traits
