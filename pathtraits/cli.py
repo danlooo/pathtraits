@@ -15,7 +15,7 @@ DB_PATH = os.environ.get("PATHTRAITS_DB_PATH", os.path.expanduser("~/.pathtraits
 @click.group()
 def main():
     """
-    Main commands
+    pathtraits: Annotate files and directories using YAML sidecar files
     """
 
 
