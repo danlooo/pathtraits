@@ -24,9 +24,14 @@ class TestMain(unittest.TestCase):
             "has_sidecar_meta_file_BOOL": 1,
             "is_example_BOOL": 1,
             "score_TEXT": "zero",
+            "score_REAL": 3.5,
         }
         for k, v in target.items():
             self.assertEqual(source[k], v)
+
+        source = len(db.execute("SELECT * FROM data;").fetchall())
+        target = 4
+        self.assertEqual(source, target)
 
 
 if __name__ == "__main__":
