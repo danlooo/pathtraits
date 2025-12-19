@@ -9,6 +9,7 @@ import unittest
 import tempfile
 import pathtraits.db
 import pathtraits.scan
+import pathtraits.access
 
 
 class TestMain(unittest.TestCase):
@@ -19,7 +20,7 @@ class TestMain(unittest.TestCase):
         db = pathtraits.db.TraitsDB(db_path)
         self.assertTrue(db is not None)
 
-        source = db.get_dict("test/example/EU/de.txt")
+        source = pathtraits.access.get_dict(db, "test/example/EU/de.txt")
         target = {
             "description_TEXT": "Germany data",
             "has_sidecar_meta_file_BOOL": 1,
