@@ -130,13 +130,14 @@ class TraitsDB:
         sql_type = sqlite_types.get(value_type, "TEXT")
         return sql_type
 
-    def put(self, table, condition=None, **kwargs):
+    def put(self, table, condition=None, update=True, **kwargs):
         """
         Puts a row into a table. Creates a row if not present, updates otherwise.
+        :param update; overwrite existing data
         """
         escaped_kwargs = {k: TraitsDB.escape(v) for (k, v) in kwargs.items()}
 
-        if self.get(table, condition=condition, **kwargs):
+        if update and self.get(table, condition=condition, **kwargs):
             # update
             values = " , ".join([f"{k}={v}" for (k, v) in escaped_kwargs.items()])
             if condition:
@@ -223,7 +224,7 @@ class TraitsDB:
         self.execute(add_table_query)
         self.update_traits()
 
-    def put_trait(self, path_id, trait_name, value):
+    def put_trait(self, path_id, trait_name, value, update=True):
         """
         Put a trait to the database
 
@@ -233,7 +234,7 @@ class TraitsDB:
         :param value: trait value
         """
         kwargs = {"path": path_id, trait_name: value}
-        self.put(trait_name, condition=f"path = {path_id}", **kwargs)
+        self.put(trait_name, condition=f"path = {path_id}", update=update, **kwargs)
 
     def add_pathpair(self, pair: PathPair):
         """
@@ -259,8 +260,17 @@ class TraitsDB:
             for k, v in traits.items():
                 # same YAML key might have different value types
                 # Therefore, add type to key
-                k = f"{k}_{TraitsDB.sql_type(type(v))}"
+
+                # get element type for list
+                # add: handle lists with mixed element type
+                t = type(v[0]) if isinstance(v, list) else type(v)
+                k = f"{k}_{TraitsDB.sql_type(t)}"
                 if k not in self.traits:
-                    self.create_trait_table(k, type(v))
+                    t = type(v[0]) if isinstance(v, list) else type(v)
+                    self.create_trait_table(k, t)
                 if k in self.traits:
-                    self.put_trait(path_id, k, v)
+                    if isinstance(v, list):
+                        for vv in v:
+                            self.put_trait(path_id, k, vv, update=False)
+                    else:
+                        self.put_trait(path_id, k, v)
