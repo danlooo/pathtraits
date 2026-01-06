@@ -28,7 +28,7 @@ class TraitsDB:
         :param row: Description
         """
         fields = [column[0] for column in cursor.description]
-        res = {key: value for key, value in zip(fields, row)}
+        res = dict(zip(fields, row))
         return res
 
     @staticmethod
@@ -41,6 +41,7 @@ class TraitsDB:
         res = {}
         for row in rows:
             for k, v in row.items():
+                # pylint: disable=C0201
                 if k in res.keys() and v not in res[k]:
                     res[k].append(v)
                 else:
