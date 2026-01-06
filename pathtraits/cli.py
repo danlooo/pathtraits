@@ -26,16 +26,21 @@ def main():
     default=DB_PATH,
     type=click.Path(file_okay=True, dir_okay=False),
 )
+@click.option(
+    "--exclude-regex",
+    default=None,
+)
 @click.option("-v", "--verbose", flag_value=True, default=False)
-def batch(path, db_path, verbose):
+def batch(path, db_path, exclude_regex, verbose):
     """
     Update database once, searches for all directories recursively.
 
     :param path: path to scan in batch mode recursively
     :param db_path: path to the database
+    :param exclude_regex: exclue file paths matching this regex
     :param verbose: enable verbose logging
     """
-    scan.batch(path, db_path, verbose)
+    scan.batch(path, db_path, exclude_regex, verbose)
 
 
 @main.command(help="Update database continiously, watches for new or changed files.")

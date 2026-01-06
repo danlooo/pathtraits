@@ -19,7 +19,7 @@ class TestMain(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.db_path = tempfile.mkstemp()[1]
-        pathtraits.scan.batch("test/example", cls.db_path, False)
+        pathtraits.scan.batch("test/example", cls.db_path, "North_America$", False)
         cls.db = pathtraits.db.TraitsDB(cls.db_path)
 
     @classmethod
@@ -62,9 +62,17 @@ class TestMain(unittest.TestCase):
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
+    def test_missing_north_america(self):
+        source = pathtraits.access.get_dict(
+            self.db, "test/example/Americas/North_America"
+        )
+        target = {"description": "all data", "is_example": True}
+        for k, v in target.items():
+            self.assertEqual(source[k], v)
+
     def test_data_view(self):
         source = len(self.db.execute("SELECT * FROM data;").fetchall())
-        target = 10
+        target = 8
         self.assertEqual(source, target)
 
 
