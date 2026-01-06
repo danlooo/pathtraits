@@ -13,14 +13,23 @@ import pathtraits.access
 
 
 class TestMain(unittest.TestCase):
+    db_path = None
+    db = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls.db_path = tempfile.mkstemp()[1]
+        pathtraits.scan.batch("test/example", cls.db_path, False)
+        cls.db = pathtraits.db.TraitsDB(cls.db_path)
+
+    @classmethod
+    def tearDownClass(cls):
+        os.remove(cls.db_path)
+
     def test_example(self):
-        db_path = tempfile.mkstemp()[1]
-        pathtraits.scan.batch("test/example", db_path, False)
+        self.assertTrue(self.db is not None)
 
-        db = pathtraits.db.TraitsDB(db_path)
-        self.assertTrue(db is not None)
-
-        source = pathtraits.access.get_dict(db, "test/example/EU/de.txt")
+        source = pathtraits.access.get_dict(self.db, "test/example/EU/de.txt")
         target = {
             "description": "Germany data",
             "has_sidecar_meta_file": True,
@@ -30,7 +39,7 @@ class TestMain(unittest.TestCase):
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
-        source = pathtraits.access.get_dict(db, "test/example/EU")
+        source = pathtraits.access.get_dict(self.db, "test/example/EU")
         target = {
             "description": "EU data",
             "is_example": True,
@@ -40,7 +49,7 @@ class TestMain(unittest.TestCase):
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
-        source = pathtraits.access.get_dict(db, "test/example")
+        source = pathtraits.access.get_dict(self.db, "test/example")
         target = {
             "description": "all data",
             "is_example": True,
@@ -49,10 +58,9 @@ class TestMain(unittest.TestCase):
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
-        source = len(db.execute("SELECT * FROM data;").fetchall())
+        source = len(self.db.execute("SELECT * FROM data;").fetchall())
         target = 6
         self.assertEqual(source, target)
-        os.remove(db_path)
 
 
 if __name__ == "__main__":
