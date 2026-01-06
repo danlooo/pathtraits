@@ -34,12 +34,12 @@ class TraitsDB:
             if v is None:
                 continue
             # sqlite don't know bool
-            if k.endswith("_BOOL"):
+            if k.endswith("/BOOL"):
                 v = v > 0
             if isinstance(v, float):
                 v_int = int(v)
                 v = v_int if v_int == v else v
-            k = k.removesuffix("_TEXT").removesuffix("_REAL").removesuffix("_BOOL")
+            k = k.removesuffix("/TEXT").removesuffix("/REAL").removesuffix("/BOOL")
             res[k] = v
         return res
 
@@ -334,7 +334,7 @@ class TraitsDB:
                 # get element type for list
                 # add: handle lists with mixed element type
                 t = type(v[0]) if isinstance(v, list) else type(v)
-                k = f"{k}_{TraitsDB.sql_type(t)}"
+                k = f"{k}/{TraitsDB.sql_type(t)}"
                 if k not in self.traits:
                     t = type(v[0]) if isinstance(v, list) else type(v)
                     self.create_trait_table(k, t)

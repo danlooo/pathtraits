@@ -63,7 +63,7 @@ class TestMain(unittest.TestCase):
 
     def test_data_view(self):
         source = len(self.db.execute("SELECT * FROM data;").fetchall())
-        target = 6
+        target = 10
         self.assertEqual(source, target)
 
 
