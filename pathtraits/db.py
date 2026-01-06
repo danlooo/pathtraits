@@ -54,10 +54,11 @@ class TraitsDB:
         for row in rows:
             for k, v in row.items():
                 # pylint: disable=C0201
-                if k in res.keys() and v not in res[k]:
+                if not k in res.keys():
+                    res[k] = []
+                if not v in res[k]:
                     res[k].append(v)
-                else:
-                    res[k] = [v]
+
         # simplify lists with just one element
         # ensure fixed order of list entries
         res = {k: sorted(v, key=str) if len(v) > 1 else v[0] for k, v in res.items()}
