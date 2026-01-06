@@ -35,6 +35,9 @@ class TraitsDB:
             # sqlite don't know bool
             if k.endswith("_BOOL"):
                 v = v > 0
+            if isinstance(v, float):
+                v_int = int(v)
+                v = v_int if v_int == v else v
             k = k.removesuffix("_TEXT").removesuffix("_REAL").removesuffix("_BOOL")
             res[k] = v
         return res

@@ -40,6 +40,15 @@ class TestMain(unittest.TestCase):
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
+        source = pathtraits.access.get_dict(db, "test/example")
+        target = {
+            "description": "all data",
+            "is_example": True,
+            "score": 5,
+        }
+        for k, v in target.items():
+            self.assertEqual(source[k], v)
+
         source = len(db.execute("SELECT * FROM data;").fetchall())
         target = 6
         self.assertEqual(source, target)
