@@ -66,7 +66,7 @@ class TestMain(unittest.TestCase):
         source = pathtraits.access.get_dict(
             self.db, "test/example/Americas/North_America"
         )
-        target = {"description": "all data", "is_example": True}
+        target = pathtraits.access.get_dict(self.db, "test/example/Americas")
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
