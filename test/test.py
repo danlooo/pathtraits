@@ -26,9 +26,10 @@ class TestMain(unittest.TestCase):
     def tearDownClass(cls):
         os.remove(cls.db_path)
 
-    def test_example(self):
+    def test_db_exist(self):
         self.assertTrue(self.db is not None)
 
+    def test_de(self):
         source = pathtraits.access.get_dict(self.db, "test/example/EU/de.txt")
         target = {
             "description": "Germany data",
@@ -39,6 +40,7 @@ class TestMain(unittest.TestCase):
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
+    def test_eu(self):
         source = pathtraits.access.get_dict(self.db, "test/example/EU")
         target = {
             "description": "EU data",
@@ -49,6 +51,7 @@ class TestMain(unittest.TestCase):
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
+    def test_example(self):
         source = pathtraits.access.get_dict(self.db, "test/example")
         target = {
             "description": "all data",
@@ -58,6 +61,7 @@ class TestMain(unittest.TestCase):
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
+    def test_data_view(self):
         source = len(self.db.execute("SELECT * FROM data;").fetchall())
         target = 6
         self.assertEqual(source, target)
