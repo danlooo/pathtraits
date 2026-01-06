@@ -46,7 +46,8 @@ class TraitsDB:
                 else:
                     res[k] = [v]
         # simplify lists with just one element
-        res = {k: v if len(v) > 1 else v[0] for k, v in res.items()}
+        # ensure fixed order of list entries
+        res = {k: sorted(v) if len(v) > 1 else v[0] for k, v in res.items()}
         return res
 
     def __init__(self, db_path):
