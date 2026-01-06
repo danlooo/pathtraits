@@ -39,8 +39,6 @@ def get_dict(self, path):
         for k, v in cur_data.items():
             if not (v and k != "path"):
                 continue
-            if k.endswith("_BOOL"):
-                v = v == 1
             res[k] = v
     return res
 

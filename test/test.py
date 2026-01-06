@@ -22,21 +22,20 @@ class TestMain(unittest.TestCase):
 
         source = pathtraits.access.get_dict(db, "test/example/EU/de.txt")
         target = {
-            "description_TEXT": "Germany data",
-            "has_sidecar_meta_file_BOOL": True,
-            "is_example_BOOL": True,
-            "score_TEXT": "zero",
-            "score_REAL": 3.5,
+            "description": "Germany data",
+            "has_sidecar_meta_file": True,
+            "is_example": True,
+            "score": "zero",
         }
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
         source = pathtraits.access.get_dict(db, "test/example/EU")
         target = {
-            "description_TEXT": "EU data",
-            "is_example_BOOL": True,
-            "score_REAL": 3.5,
-            "users_TEXT": ["dloos", "fgans"],
+            "description": "EU data",
+            "is_example": True,
+            "score": 3.5,
+            "users": ["dloos", "fgans"],
         }
         for k, v in target.items():
             self.assertEqual(source[k], v)

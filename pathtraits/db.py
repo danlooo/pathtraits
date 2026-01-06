@@ -28,7 +28,15 @@ class TraitsDB:
         :param row: Description
         """
         fields = [column[0] for column in cursor.description]
-        res = dict(zip(fields, row))
+        res = {}
+        for k, v in zip(fields, row):
+            if v is None:
+                continue
+            # sqlite don't know bool
+            if k.endswith("_BOOL"):
+                v = v > 0
+            k = k.removesuffix("_TEXT").removesuffix("_REAL").removesuffix("_BOOL")
+            res[k] = v
         return res
 
     @staticmethod
@@ -48,7 +56,7 @@ class TraitsDB:
                     res[k] = [v]
         # simplify lists with just one element
         # ensure fixed order of list entries
-        res = {k: sorted(v) if len(v) > 1 else v[0] for k, v in res.items()}
+        res = {k: sorted(v, key=str) if len(v) > 1 else v[0] for k, v in res.items()}
         return res
 
     def __init__(self, db_path):
