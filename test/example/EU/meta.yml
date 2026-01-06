@@ -3,3 +3,8 @@ users:
   - dloos
   - fgans
 score: 3.5
+foo:
+  bar:
+    a: 1
+    b: 2
+    c: [1, 2, 3]

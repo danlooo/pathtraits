@@ -215,7 +215,7 @@ class TraitsDB:
             self.execute(update_query)
         else:
             # insert
-            keys = " , ".join(escaped_kwargs.keys())
+            keys = "[" + "], [".join(escaped_kwargs.keys()) + "]"
             values = " , ".join([str(x) for x in escaped_kwargs.values()])
             insert_query = f"INSERT INTO [{table}] ({keys}) VALUES ({values});"
             self.execute(insert_query)
