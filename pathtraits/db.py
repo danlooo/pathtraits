@@ -19,9 +19,40 @@ class TraitsDB:
     cursor = None
     traits = []
 
+    @staticmethod
+    def row_factory(cursor, row):
+        """
+        Turns sqlite3 row into a dict. Only works on a single row at once.
+
+        :param cursor: Description
+        :param row: Description
+        """
+        fields = [column[0] for column in cursor.description]
+        res = {key: value for key, value in zip(fields, row)}
+        return res
+
+    @staticmethod
+    def merge_rows(rows: list):
+        """
+        Merges a list of row dicts of a path into a sinle dict by pooling trait keys
+
+        :param res: Description
+        """
+        res = {}
+        for row in rows:
+            for k, v in row.items():
+                if k in res.keys() and v not in res[k]:
+                    res[k].append(v)
+                else:
+                    res[k] = [v]
+        # simplify lists with just one element
+        res = {k: v if len(v) > 1 else v[0] for k, v in res.items()}
+        return res
+
     def __init__(self, db_path):
         db_path = os.path.join(db_path)
         self.cursor = sqlite3.connect(db_path, autocommit=True).cursor()
+        self.cursor.row_factory = TraitsDB.row_factory
 
         init_path_table_query = """
             CREATE TABLE IF NOT EXISTS path (
@@ -67,15 +98,19 @@ class TraitsDB:
                 for (k, v) in kwargs.items()
             }
             condition = " AND ".join([f"{k}={v}" for (k, v) in escaped_kwargs.items()])
-        get_row_query = f"SELECT {cols} FROM {table} WHERE {condition} LIMIT 1;"
+        get_row_query = f"SELECT {cols} FROM {table} WHERE {condition};"
         response = self.execute(get_row_query)
-        values = response.fetchone()
 
-        if values is None:
+        if response is None:
             return None
 
-        keys = map(lambda x: x[0], response.description)
-        res = dict(zip(keys, values))
+        res = response.fetchall()
+        if len(res) == 1:
+            return res[0]
+
+        if isinstance(res, list) and len(res) > 1:
+            res = TraitsDB.merge_rows(res)
+
         return res
 
     def put_path_id(self, path):
@@ -194,7 +229,7 @@ class TraitsDB:
             ORDER BY name;
          """
         traits = self.execute(get_traits_query).fetchall()
-        self.traits = [x[0] for x in traits]
+        self.traits = [list(x.values())[0] for x in traits]
         self.put_data_view()
 
     def create_trait_table(self, trait_name, value_type):

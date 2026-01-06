@@ -31,8 +31,18 @@ class TestMain(unittest.TestCase):
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
+        source = pathtraits.access.get_dict(db, "test/example/EU")
+        target = {
+            "description_TEXT": "EU data",
+            "is_example_BOOL": True,
+            "score_REAL": 3.5,
+            "users_TEXT": ["dloos", "fgans"],
+        }
+        for k, v in target.items():
+            self.assertEqual(source[k], v)
+
         source = len(db.execute("SELECT * FROM data;").fetchall())
-        target = 4
+        target = 6
         self.assertEqual(source, target)
         os.remove(db_path)
 
