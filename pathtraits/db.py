@@ -5,6 +5,7 @@ Module to handle the traits database
 import logging
 import sqlite3
 import os
+from collections.abc import MutableMapping
 import yaml
 from pathtraits.pathpair import PathPair
 
@@ -33,12 +34,12 @@ class TraitsDB:
             if v is None:
                 continue
             # sqlite don't know bool
-            if k.endswith("_BOOL"):
+            if k.endswith("/BOOL"):
                 v = v > 0
             if isinstance(v, float):
                 v_int = int(v)
                 v = v_int if v_int == v else v
-            k = k.removesuffix("_TEXT").removesuffix("_REAL").removesuffix("_BOOL")
+            k = k.removesuffix("/TEXT").removesuffix("/REAL").removesuffix("/BOOL")
             res[k] = v
         return res
 
@@ -53,14 +54,34 @@ class TraitsDB:
         for row in rows:
             for k, v in row.items():
                 # pylint: disable=C0201
-                if k in res.keys() and v not in res[k]:
+                if not k in res.keys():
+                    res[k] = []
+                if not v in res[k]:
                     res[k].append(v)
-                else:
-                    res[k] = [v]
+
         # simplify lists with just one element
         # ensure fixed order of list entries
         res = {k: sorted(v, key=str) if len(v) > 1 else v[0] for k, v in res.items()}
         return res
+
+    @staticmethod
+    def flatten_dict(dictionary: dict, root_key: str = "", separator: str = "/"):
+        """
+        Docstring for flatten_dict
+
+        :param d: Description
+        :type d: dict
+        """
+        items = []
+        for key, value in dictionary.items():
+            new_key = root_key + separator + key if root_key else key
+            if isinstance(value, MutableMapping):
+                items.extend(
+                    TraitsDB.flatten_dict(value, new_key, separator=separator).items()
+                )
+            else:
+                items.append((new_key, value))
+        return dict(items)
 
     def __init__(self, db_path):
         db_path = os.path.join(db_path)
@@ -189,15 +210,15 @@ class TraitsDB:
             # update
             values = " , ".join([f"{k}={v}" for (k, v) in escaped_kwargs.items()])
             if condition:
-                update_query = f"UPDATE {table} SET {values} WHERE {condition};"
+                update_query = f"UPDATE [{table}] SET {values} WHERE {condition};"
             else:
-                update_query = f"UPDATE {table} SET {values};"
+                update_query = f"UPDATE [{table}] SET {values};"
             self.execute(update_query)
         else:
             # insert
-            keys = " , ".join(escaped_kwargs.keys())
+            keys = "[" + "], [".join(escaped_kwargs.keys()) + "]"
             values = " , ".join([str(x) for x in escaped_kwargs.values()])
-            insert_query = f"INSERT INTO {table} ({keys}) VALUES ({values});"
+            insert_query = f"INSERT INTO [{table}] ({keys}) VALUES ({values});"
             self.execute(insert_query)
 
     def put_data_view(self):
@@ -209,7 +230,7 @@ class TraitsDB:
         if self.traits:
             join_query = " ".join(
                 [
-                    f"LEFT JOIN {x} ON {x}.path = path.id"
+                    f"LEFT JOIN [{x}] ON [{x}].path = path.id \n"
                     for x in self.traits
                     if x != "path"
                 ]
@@ -217,7 +238,7 @@ class TraitsDB:
 
             create_view_query = f"""
                 CREATE VIEW data AS
-                SELECT path.path, {', '.join(self.traits)}
+                SELECT path.path, [{'], ['.join(self.traits)}]
                 FROM path
                 {join_query};
             """
@@ -263,9 +284,9 @@ class TraitsDB:
             return
         sql_type = TraitsDB.sql_type(value_type)
         add_table_query = f"""
-            CREATE TABLE {trait_name} (
+            CREATE TABLE [{trait_name}] (
                 path INTEGER,
-                {trait_name} {sql_type},
+                [{trait_name}] {sql_type},
                 FOREIGN KEY(path) REFERENCES path(id)
             );
         """
@@ -303,6 +324,8 @@ class TraitsDB:
             if not isinstance(traits, dict):
                 return
 
+            traits = TraitsDB.flatten_dict(traits)
+
             # put path in db only if there are traits
             path_id = self.put_path_id(os.path.abspath(pair.object_path))
             for k, v in traits.items():
@@ -312,13 +335,15 @@ class TraitsDB:
                 # get element type for list
                 # add: handle lists with mixed element type
                 t = type(v[0]) if isinstance(v, list) else type(v)
-                k = f"{k}_{TraitsDB.sql_type(t)}"
+                k = f"{k}/{TraitsDB.sql_type(t)}"
                 if k not in self.traits:
                     t = type(v[0]) if isinstance(v, list) else type(v)
                     self.create_trait_table(k, t)
                 if k in self.traits:
+                    # add to list
                     if isinstance(v, list):
                         for vv in v:
                             self.put_trait(path_id, k, vv, update=False)
+                    # overwrite scalar
                     else:
                         self.put_trait(path_id, k, v)

@@ -11,6 +11,32 @@ from pathtraits.db import TraitsDB
 logger = logging.getLogger(__name__)
 
 
+def nest_dict(flat_dict, delimiter="/"):
+    """
+    Transforms a flat dictionary with path-like keys into a nested dictionary.
+
+    :param flat_dict: The flat dictionary with path-like keys.
+    :param delimiter: The delimiter used in the keys (default is '/').
+    :return: A nested dictionary.
+    """
+    nested_dict = {}
+
+    for path, value in flat_dict.items():
+        keys = path.split(delimiter)
+        current = nested_dict
+
+        for key in keys[:-1]:
+            # If the key doesn't exist or is not a dictionary, create/overwrite it as a dictionary
+            if key not in current or not isinstance(current[key], dict):
+                current[key] = {}
+            current = current[key]
+
+        # Set the value at the final key
+        current[keys[-1]] = value
+
+    return nested_dict
+
+
 def get_dict(self, path):
     """
     Get traits for a path as a Python dictionary
@@ -40,6 +66,7 @@ def get_dict(self, path):
             if not (v and k != "path"):
                 continue
             res[k] = v
+    res = nest_dict(res)
     return res
 
 

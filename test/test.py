@@ -47,6 +47,7 @@ class TestMain(unittest.TestCase):
             "is_example": True,
             "score": 3.5,
             "users": ["dloos", "fgans"],
+            "foo": {"bar": {"a": 1, "b": 2, "c": [1, 2, 3]}},
         }
         for k, v in target.items():
             self.assertEqual(source[k], v)
@@ -63,7 +64,7 @@ class TestMain(unittest.TestCase):
 
     def test_data_view(self):
         source = len(self.db.execute("SELECT * FROM data;").fetchall())
-        target = 6
+        target = 10
         self.assertEqual(source, target)
 
 
