@@ -74,7 +74,7 @@ class TraitsDB:
         """
         items = []
         for key, value in dictionary.items():
-            new_key = root_key + separator + key if root_key else key
+            new_key = str(root_key) + str(separator) + str(key) if root_key else key
             if isinstance(value, MutableMapping):
                 items.extend(
                     TraitsDB.flatten_dict(value, new_key, separator=separator).items()
@@ -132,7 +132,7 @@ class TraitsDB:
                 for (k, v) in kwargs.items()
             }
             condition = " AND ".join([f"{k}={v}" for (k, v) in escaped_kwargs.items()])
-        get_row_query = f"SELECT {cols} FROM {table} WHERE {condition};"
+        get_row_query = f"SELECT {cols} FROM [{table}] WHERE {condition};"
         response = self.execute(get_row_query)
 
         if response is None:
@@ -158,7 +158,7 @@ class TraitsDB:
         get_row_query = f"SELECT id FROM path WHERE path = '{path}' LIMIT 1;"
         res = self.execute(get_row_query).fetchone()
         if res:
-            return res[0]
+            return res["id"]
         # create
         self.put("path", path=path)
         path_id = self.get("path", path=path, cols="id")["id"]
@@ -334,10 +334,9 @@ class TraitsDB:
 
                 # get element type for list
                 # add: handle lists with mixed element type
-                t = type(v[0]) if isinstance(v, list) else type(v)
+                t = type(v[0]) if isinstance(v, list) and len(v) > 0 else type(v)
                 k = f"{k}/{TraitsDB.sql_type(t)}"
                 if k not in self.traits:
-                    t = type(v[0]) if isinstance(v, list) else type(v)
                     self.create_trait_table(k, t)
                 if k in self.traits:
                     # add to list

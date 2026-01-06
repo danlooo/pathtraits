@@ -16,7 +16,7 @@ yaml_re = re.compile(r"(\.)?(meta)?\.(yaml|yml)$")
 
 
 # pylint: disable=W0102
-def scan_meta_yml(path, pathpairs=[]):
+def scan_meta_yml(path, pathpairs=[], exclude_regex=None):
     """
     Scan a directory recursively for meta yml files and return PathPairs.
 
@@ -27,8 +27,12 @@ def scan_meta_yml(path, pathpairs=[]):
         # faster than os.walk
         with os.scandir(path) as ents:
             for e in ents:
+                if not exclude_regex is None:
+                    if exclude_regex.search(e.path):
+                        logger.debug("exclude subtree path: %s", e.path)
+                        continue
                 if e.is_dir():
-                    scan_meta_yml(e.path, pathpairs)
+                    scan_meta_yml(e.path, pathpairs, exclude_regex)
                 else:
                     if not yaml_re.search(e.path):
                         continue
@@ -43,7 +47,7 @@ def scan_meta_yml(path, pathpairs=[]):
         return pathpairs
 
 
-def batch(path, db_path, verbose):
+def batch(path, db_path, exclude_regex, verbose):
     """
     Update database once, searches for all directories recursively.
 
@@ -57,7 +61,9 @@ def batch(path, db_path, verbose):
     if db_path is None:
         db_path = path + "/.pathtraits.db"
     db = TraitsDB(db_path)
-    pathpairs = scan_meta_yml(path)
+    if exclude_regex is not None:
+        exclude_regex = re.compile(exclude_regex)
+    pathpairs = scan_meta_yml(path, exclude_regex=exclude_regex)
     for pathpair in pathpairs:
         db.add_pathpair(pathpair)
 
