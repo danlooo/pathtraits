@@ -212,7 +212,7 @@ class TraitsDB:
 
         if update and self.get(table, condition=condition, **kwargs):
             # update
-            values = " , ".join([f"{k}={v}" for (k, v) in escaped_kwargs.items()])
+            values = " , ".join([f"[{k}]={v}" for (k, v) in escaped_kwargs.items()])
             if condition:
                 update_query = f"UPDATE [{table}] SET {values} WHERE {condition};"
             else:
