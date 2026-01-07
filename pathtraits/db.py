@@ -5,6 +5,7 @@ Module to handle the traits database
 import logging
 import sqlite3
 import os
+import sys
 from collections.abc import MutableMapping
 import yaml
 from pathtraits.pathpair import PathPair
@@ -104,7 +105,7 @@ class TraitsDB:
         self.update_traits()
 
     # pylint: disable=R1710
-    def execute(self, query):
+    def execute(self, query, ignore_error=True):
         """
         Execute a SQLite query
 
@@ -114,8 +115,11 @@ class TraitsDB:
         try:
             res = self.cursor.execute(query)
             return res
-        except sqlite3.DatabaseError:
-            logger.debug("Ignore failed query %s", query)
+        except sqlite3.DatabaseError as e:
+            if ignore_error:
+                logger.debug("Ignore failed query %s: %s", query, e)
+            else:
+                sys.exit(e)
 
     def get(self, table, cols="*", condition=None, **kwargs):
         """

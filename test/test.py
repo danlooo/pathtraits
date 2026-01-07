@@ -75,6 +75,15 @@ class TestMain(unittest.TestCase):
         target = 8
         self.assertEqual(source, target)
 
+    def test_data_query(self):
+        source = len(pathtraits.access.get_paths(self.db, "[score/REAL] >= 5"))
+        target = 1
+        self.assertEqual(source, target)
+
+        source = len(pathtraits.access.get_paths(self.db, "TRUE"))
+        target = 3
+        self.assertEqual(source, target)
+
 
 if __name__ == "__main__":
     unittest.main()

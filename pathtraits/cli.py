@@ -19,7 +19,7 @@ def main():
     """
 
 
-@main.command(help="Update database once, searches for all directories recursively.")
+@main.command()
 @click.argument("path", required=True, type=click.Path(exists=True))
 @click.option(
     "--db-path",
@@ -34,16 +34,11 @@ def main():
 def batch(path, db_path, exclude_regex, verbose):
     """
     Update database once, searches for all directories recursively.
-
-    :param path: path to scan in batch mode recursively
-    :param db_path: path to the database
-    :param exclude_regex: exclue file paths matching this regex
-    :param verbose: enable verbose logging
     """
     scan.batch(path, db_path, exclude_regex, verbose)
 
 
-@main.command(help="Update database continiously, watches for new or changed files.")
+@main.command()
 @click.argument("path", required=True, type=click.Path(exists=True))
 @click.option(
     "--db-path",
@@ -54,15 +49,11 @@ def batch(path, db_path, exclude_regex, verbose):
 def watch(path, db_path, verbose):
     """
     Update database continiously, watches for new or changed files.
-
-    :param path: path to watch recursively
-    :param db_path: path to the database
-    :param verbose: enable verbose logging
     """
     scan.watch(path, db_path, verbose)
 
 
-@main.command(help="Get traits of a given path")
+@main.command()
 @click.argument("path", required=True, type=click.Path(exists=True))
 @click.option(
     "--db-path",
@@ -73,12 +64,28 @@ def watch(path, db_path, verbose):
 def get(path, db_path, verbose):
     """
     Get traits of a given path
-
-    :param path: path to get traits for
-    :param db_path: path to the database
-    :param verbose: enable verbose logging
     """
     access.get(path, db_path, verbose)
+
+
+@main.command()
+@click.argument("query_str", required=True)
+@click.option(
+    "--db-path",
+    default=DB_PATH,
+    type=click.Path(file_okay=True, dir_okay=False),
+)
+@click.option(
+    "--show-values", flag_value=True, default=False, help="Also show their trait values"
+)
+def query(query_str, db_path, show_values):
+    """
+    Get paths of given traits
+
+    Enter QUERY_STR in SQLite3 where statement format,
+    e.g. "[score/REAL]>1" to get all paths having a score >1.
+    """
+    access.query(query_str, db_path, show_values)
 
 
 if __name__ == "__main__":
