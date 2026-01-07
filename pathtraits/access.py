@@ -96,6 +96,7 @@ def get_paths_values(db, query_str):
     for r in response:
         path = r["path"]
         # ensure distinct paths
+        # pylint: disable=C0201
         if path not in res.keys():
             r = nest_dict(r)
             r.pop("path")
