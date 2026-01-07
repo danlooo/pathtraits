@@ -91,7 +91,15 @@ def get_paths_values(db, query_str):
     :param query_str: Description
     """
     query_str = f"SELECT * FROM data where {query_str};"
-    res = db.execute(query_str, ignore_error=False).fetchall()
+    response = db.execute(query_str, ignore_error=False).fetchall()
+    res = {}
+    for r in response:
+        path = r["path"]
+        # ensure distinct paths
+        if path not in res.keys():
+            r = nest_dict(r)
+            r.pop("path")
+            res[path] = r
     return res
 
 

@@ -80,9 +80,10 @@ class TestMain(unittest.TestCase):
         target = 1
         self.assertEqual(source, target)
 
-        source = len(pathtraits.access.get_paths(self.db, "TRUE"))
-        target = 3
-        self.assertEqual(source, target)
+        traits = pathtraits.access.get_paths_values(self.db, "TRUE")
+        self.assertEqual(len(traits), 3)
+        for v in traits.values():
+            self.assertTrue("path" not in v.keys())
 
 
 if __name__ == "__main__":
