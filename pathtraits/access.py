@@ -37,7 +37,7 @@ def nest_dict(flat_dict, delimiter="/"):
     return nested_dict
 
 
-def get_dict(self, path):
+def get_dict(db, path):
     """
     Get traits for a path as a Python dictionary
 
@@ -50,12 +50,12 @@ def get_dict(self, path):
 
     # get traits from path and its parents
     dirs_data = []
-    data = self.get("data", path=abs_path)
+    data = db.get("data", path=abs_path)
     if data:
         dirs_data.append(data)
     for i in reversed(range(0, len(dirs))):
         cur_path = "/".join(dirs[0 : i + 1])
-        data = self.get("data", path=cur_path)
+        data = db.get("data", path=cur_path)
         if data:
             dirs_data.append(data)
 
@@ -67,6 +67,31 @@ def get_dict(self, path):
                 continue
             res[k] = v
     res = nest_dict(res)
+    return res
+
+
+def get_paths(db, query_str):
+    """
+    Docstring for get_paths
+
+    :param db: Description
+    :param query_str: Description
+    """
+    query_str = f"SELECT DISTINCT path FROM data where {query_str};"
+    res = db.execute(query_str, ignore_error=False).fetchall()
+    res = [x["path"] for x in res]
+    return res
+
+
+def get_paths_values(db, query_str):
+    """
+    Docstring for get_paths_values
+
+    :param db: Description
+    :param query_str: Description
+    """
+    query_str = f"SELECT * FROM data where {query_str};"
+    res = db.execute(query_str, ignore_error=False).fetchall()
     return res
 
 
@@ -88,3 +113,35 @@ def get(path, db_path, verbose):
     else:
         logger.error("No traits found for path %s in database %s", path, db_path)
         sys.exit(1)
+
+
+def query(query_str, db_path, show_values):
+    """
+    Docstring for query
+
+    :param query_str: Description
+    :param db_path: Description
+    """
+    db = TraitsDB(db_path)
+    if show_values:
+        res = get_paths_values(db, query_str)
+        if len(res) > 0:
+            print(yaml.safe_dump(res))
+        else:
+            logger.error(
+                "No paths found for traits matching %s in database %s",
+                query_str,
+                db_path,
+            )
+        sys.exit(1)
+    else:
+        res = get_paths(db, query_str)
+        if len(res) > 0:
+            for r in res:
+                print(r)
+        else:
+            logger.error(
+                "No paths found for traits matching %s in database %s",
+                query_str,
+                db_path,
+            )
