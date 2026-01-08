@@ -90,7 +90,7 @@ class TraitsDB:
         self.cursor.row_factory = TraitsDB.row_factory
 
         init_path_table_query = """
-            CREATE TABLE IF NOT EXISTS path (
+            CREATE TABLE IF NOT EXISTS _paths (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 path text NOT NULL UNIQUE
             );
@@ -99,9 +99,29 @@ class TraitsDB:
 
         init_path_index_query = """
             CREATE INDEX IF NOT EXISTS idx_path_path
-            ON path(path);
+            ON _paths(path);
         """
         self.execute(init_path_index_query)
+
+        init_traits_table_query = """
+            CREATE TABLE IF NOT EXISTS _traits (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                trait text NOT NULL UNIQUE
+            );
+        """
+        self.execute(init_traits_table_query)
+
+        init_traits_paths_table_query = """
+            CREATE TABLE IF NOT EXISTS _traits_paths (
+                trait INTEGER,
+                path INTEGER,
+                FOREIGN KEY(trait) REFERENCES _traits(id),
+                FOREIGN KEY(path) REFERENCES path(id),
+                UNIQUE(trait, path)
+            );
+        """
+        self.execute(init_traits_paths_table_query)
+
         self.update_traits()
 
     # pylint: disable=R1710
@@ -159,13 +179,13 @@ class TraitsDB:
         :param path: path to put to the data base
         :returns: the id of that path
         """
-        get_row_query = f"SELECT id FROM path WHERE path = '{path}' LIMIT 1;"
+        get_row_query = f"SELECT id FROM _paths WHERE path = '{path}' LIMIT 1;"
         res = self.execute(get_row_query).fetchone()
         if res:
             return res["id"]
         # create
-        self.put("path", path=path)
-        path_id = self.get("path", path=path, cols="id")["id"]
+        self.put("_paths", path=path)
+        path_id = self.get("_paths", path=path, cols="id")["id"]
         return path_id
 
     @staticmethod
@@ -234,7 +254,7 @@ class TraitsDB:
         if self.traits:
             join_query = " ".join(
                 [
-                    f"LEFT JOIN [{x}] ON [{x}].path = path.id \n"
+                    f"LEFT JOIN [{x}] ON [{x}].path = _paths.id \n"
                     for x in self.traits
                     if x != "path"
                 ]
@@ -242,15 +262,15 @@ class TraitsDB:
 
             create_view_query = f"""
                 CREATE VIEW data AS
-                SELECT path.path, [{'], ['.join(self.traits)}]
-                FROM path
+                SELECT _paths.path, [{'], ['.join(self.traits)}]
+                FROM _paths
                 {join_query};
             """
         else:
             create_view_query = """
                 CREATE VIEW data AS
-                SELECT path.path
-                FROM path;
+                SELECT _paths.path
+                FROM _paths;
             """
         self.execute(create_view_query)
 
@@ -259,14 +279,15 @@ class TraitsDB:
         Get all traits from the database
         """
         get_traits_query = """
-            SELECT name
-            FROM sqlite_master
-            WHERE type='table'
-            AND name NOT LIKE 'sqlite_%'
-            AND name != 'path'
-            ORDER BY name;
+            SELECT trait
+            FROM _traits
+            ORDER BY trait;
          """
-        traits = self.execute(get_traits_query).fetchall()
+        traits = self.execute(get_traits_query)
+        if traits is not None:
+            traits = traits.fetchall()
+        else:
+            traits = []
         self.traits = [list(x.values())[0] for x in traits]
         self.put_data_view()
 
@@ -295,6 +316,7 @@ class TraitsDB:
             );
         """
         self.execute(add_table_query)
+        self.put("_traits", trait=trait_name)
         self.update_traits()
 
     def put_trait(self, path_id, trait_name, value, update=True):
@@ -307,6 +329,8 @@ class TraitsDB:
         :param value: trait value
         """
         kwargs = {"path": path_id, trait_name: value}
+        trait_id = self.get("_traits", trait=trait_name)["id"]
+        self.put("_traits_paths", trait=trait_id, path=path_id)
         self.put(trait_name, condition=f"path = {path_id}", update=update, **kwargs)
 
     def add_pathpair(self, pair: PathPair):
