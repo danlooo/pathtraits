@@ -35,12 +35,12 @@ class TraitsDB:
             if v is None:
                 continue
             # sqlite don't know bool
-            if k.endswith("/BOOL"):
+            if k.endswith("_BOOL"):
                 v = v > 0
             if isinstance(v, float):
                 v_int = int(v)
                 v = v_int if v_int == v else v
-            k = k.removesuffix("/TEXT").removesuffix("/REAL").removesuffix("/BOOL")
+            k = k.removesuffix("_TEXT").removesuffix("_REAL").removesuffix("_BOOL")
             res[k] = v
         return res
 
@@ -171,6 +171,60 @@ class TraitsDB:
 
         return res
 
+    def get_path_id(self, path: str):
+        """
+        Docstring for get_path_id
+
+        :param self: Description
+        :param path: Description
+        :type path: str
+        """
+        res = self.get("_path", path=path, cols="path_id")
+        if res == []:
+            return None
+
+        return res["path_id"]
+
+    def get_traits(self, path_id: int):
+        """
+        Get traits of a given path
+        """
+        query = f"""
+        SELECT DISTINCT trait
+        FROM _trait
+        INNER JOIN _trait_path
+        WHERE path_id = '{path_id}'
+        """
+        response = self.execute(query)
+
+        if response is None:
+            return None
+
+        res = response.fetchall()
+        if len(res) == 1:
+            return res[0]
+        return [x["trait"] for x in res]
+
+    def get_pathtraits(self, path: str):
+        """
+        Docstring for get_pathtraits
+
+        :param self: Description
+        :param path: Description
+        :type path: str
+        """
+        path_id = self.get_path_id(path)
+        traits = self.get_traits(path_id)
+        res = {}
+        for trait in traits:
+            pathtraits = self.get(trait, path_id=path_id)
+            if isinstance(pathtraits, dict):
+                pathtraits.pop("path_id")
+                for k, v in pathtraits.items():
+                    res[k] = v
+        print("###1 ", path, res)
+        return res
+
     def put_path_id(self, path):
         """
         Docstring for put_path_id
@@ -185,7 +239,7 @@ class TraitsDB:
             return res["path_id"]
         # create
         self.put("_path", path=path)
-        path_id = self.get("_path", path=path, cols="path_id")["path_id"]
+        path_id = self.get_path_id(path)
         return path_id
 
     @staticmethod
@@ -363,7 +417,7 @@ class TraitsDB:
                 # get element type for list
                 # add: handle lists with mixed element type
                 t = type(v[0]) if isinstance(v, list) and len(v) > 0 else type(v)
-                k = f"{k}/{TraitsDB.sql_type(t)}"
+                k = f"{k}_{TraitsDB.sql_type(t)}"
                 if k not in self.traits:
                     self.create_trait_table(k, t)
                 if k in self.traits:

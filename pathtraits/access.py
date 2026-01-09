@@ -50,12 +50,12 @@ def get_dict(db, path):
 
     # get traits from path and its parents
     dirs_data = []
-    data = db.get("data", path=abs_path)
+    data = db.get_pathtraits(abs_path)
     if data:
         dirs_data.append(data)
     for i in reversed(range(0, len(dirs))):
         cur_path = "/".join(dirs[0 : i + 1])
-        data = db.get("data", path=cur_path)
+        data = db.get_pathtraits(cur_path)
         if data:
             dirs_data.append(data)
 
