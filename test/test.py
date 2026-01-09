@@ -70,6 +70,15 @@ class TestMain(unittest.TestCase):
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
+    def test_query(self):
+        q1 = self.db.get_paths("score_REAL > 3")
+        self.assertEqual(len(q1), 2)
+
+        q2 = self.db.get_paths(
+            "score_TEXT = 'zero' AND description_TEXT LIKE '%Germany%'"
+        )
+        self.assertEqual(len(q2), 1)
+
 
 if __name__ == "__main__":
     unittest.main()

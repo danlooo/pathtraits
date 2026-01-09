@@ -22,6 +22,17 @@ class TraitsDB:
     traits = []
 
     @staticmethod
+    def remove_type_suffixes(s: str):
+        """
+        Docstring for remove_type_suffixes
+
+        :param s: Description
+        :type s: str
+        """
+        s = s.removesuffix("_TEXT").removesuffix("_REAL").removesuffix("_BOOL")
+        return s
+
+    @staticmethod
     def row_factory(cursor, row):
         """
         Turns sqlite3 row into a dict. Only works on a single row at once.
@@ -40,7 +51,7 @@ class TraitsDB:
             if isinstance(v, float):
                 v_int = int(v)
                 v = v_int if v_int == v else v
-            k = k.removesuffix("_TEXT").removesuffix("_REAL").removesuffix("_BOOL")
+            k = TraitsDB.remove_type_suffixes(k)
             res[k] = v
         return res
 
@@ -223,6 +234,27 @@ class TraitsDB:
                 for k, v in pathtraits.items():
                     res[k] = v
         return res
+
+    def get_paths(self, query_str):
+        """
+        Get paths matching pathtraits
+
+        :param self: Description
+        :param kwargs: pathtraits to match
+        """
+        traits = filter(lambda x: x in query_str, self.traits)
+        query = "SELECT DISTINCT path FROM _path"
+        for trait in traits:
+            query += f" NATURAL JOIN {trait}"
+        query += f" WHERE {query_str};"
+
+        response = self.execute(query)
+        if response is None:
+            return None
+        else:
+            res = response.fetchall()
+            res = [x["path"] for x in res]
+            return res
 
     def put_path_id(self, path):
         """

@@ -70,40 +70,6 @@ def get_dict(db, path):
     return res
 
 
-def get_paths(db, query_str):
-    """
-    Docstring for get_paths
-
-    :param db: Description
-    :param query_str: Description
-    """
-    query_str = f"SELECT DISTINCT path FROM data where {query_str};"
-    res = db.execute(query_str, ignore_error=False).fetchall()
-    res = [x["path"] for x in res]
-    return res
-
-
-def get_paths_values(db, query_str):
-    """
-    Docstring for get_paths_values
-
-    :param db: Description
-    :param query_str: Description
-    """
-    query_str = f"SELECT * FROM data where {query_str};"
-    response = db.execute(query_str, ignore_error=False).fetchall()
-    res = {}
-    for r in response:
-        path = r["path"]
-        # ensure distinct paths
-        # pylint: disable=C0201
-        if path not in res.keys():
-            r = nest_dict(r)
-            r.pop("path")
-            res[path] = r
-    return res
-
-
 def get(path, db_path, verbose):
     """
     Docstring for get
@@ -124,7 +90,7 @@ def get(path, db_path, verbose):
         sys.exit(1)
 
 
-def query(query_str, db_path, show_values):
+def query(query_str, db_path):
     """
     Docstring for query
 
@@ -132,25 +98,8 @@ def query(query_str, db_path, show_values):
     :param db_path: Description
     """
     db = TraitsDB(db_path)
-    if show_values:
-        res = get_paths_values(db, query_str)
-        if len(res) > 0:
-            print(yaml.safe_dump(res))
-        else:
-            logger.error(
-                "No paths found for traits matching %s in database %s",
-                query_str,
-                db_path,
-            )
-        sys.exit(1)
-    else:
-        res = get_paths(db, query_str)
-        if len(res) > 0:
-            for r in res:
-                print(r)
-        else:
-            logger.error(
-                "No paths found for traits matching %s in database %s",
-                query_str,
-                db_path,
-            )
+    paths = db.get_paths(query_str)
+    if paths == []:
+        sys.exit(f"No paths matching query '{query_str}'")
+    for path in paths:
+        print(path)
