@@ -75,17 +75,14 @@ def get(path, db_path, verbose):
     default=DB_PATH,
     type=click.Path(file_okay=True, dir_okay=False),
 )
-@click.option(
-    "--show-values", flag_value=True, default=False, help="Also show their trait values"
-)
-def query(query_str, db_path, show_values):
+def query(query_str, db_path):
     """
     Get paths of given traits
 
     Enter QUERY_STR in SQLite3 where statement format,
-    e.g. "[score/REAL]>1" to get all paths having a score >1.
+    e.g. "score_REAL>1" to get all paths having a numerical score >1.
     """
-    access.query(query_str, db_path, show_values)
+    access.query(query_str, db_path)
 
 
 if __name__ == "__main__":

@@ -70,20 +70,14 @@ class TestMain(unittest.TestCase):
         for k, v in target.items():
             self.assertEqual(source[k], v)
 
-    def test_data_view(self):
-        source = len(self.db.execute("SELECT * FROM data;").fetchall())
-        target = 8
-        self.assertEqual(source, target)
+    def test_query(self):
+        q1 = self.db.get_paths("score_REAL > 3")
+        self.assertEqual(len(q1), 2)
 
-    def test_data_query(self):
-        source = len(pathtraits.access.get_paths(self.db, "[score/REAL] >= 5"))
-        target = 1
-        self.assertEqual(source, target)
-
-        traits = pathtraits.access.get_paths_values(self.db, "TRUE")
-        self.assertEqual(len(traits), 3)
-        for v in traits.values():
-            self.assertTrue("path" not in v.keys())
+        q2 = self.db.get_paths(
+            "score_TEXT = 'zero' AND description_TEXT LIKE '%Germany%'"
+        )
+        self.assertEqual(len(q2), 1)
 
 
 if __name__ == "__main__":
