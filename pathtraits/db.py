@@ -245,16 +245,17 @@ class TraitsDB:
         traits = filter(lambda x: x in query_str, self.traits)
         query = "SELECT DISTINCT path FROM _path"
         for trait in traits:
+            # pylint: disable=R1713
             query += f" NATURAL JOIN {trait}"
         query += f" WHERE {query_str};"
 
         response = self.execute(query)
         if response is None:
             return None
-        else:
-            res = response.fetchall()
-            res = [x["path"] for x in res]
-            return res
+
+        res = response.fetchall()
+        res = [x["path"] for x in res]
+        return res
 
     def put_path_id(self, path):
         """
