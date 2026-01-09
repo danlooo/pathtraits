@@ -222,7 +222,6 @@ class TraitsDB:
                 pathtraits.pop("path_id")
                 for k, v in pathtraits.items():
                     res[k] = v
-        print("###1 ", path, res)
         return res
 
     def put_path_id(self, path):
@@ -299,35 +298,6 @@ class TraitsDB:
             insert_query = f"INSERT INTO [{table}] ({keys}) VALUES ({values});"
             self.execute(insert_query)
 
-    def put_data_view(self):
-        """
-        Creates a SQL View with all denormalized traits
-        """
-        self.execute("DROP VIEW IF EXISTS DATA;")
-
-        if self.traits:
-            join_query = " ".join(
-                [
-                    f"LEFT JOIN [{x}] ON [{x}].path = _path.id \n"
-                    for x in self.traits
-                    if x != "path"
-                ]
-            )
-
-            create_view_query = f"""
-                CREATE VIEW data AS
-                SELECT _path.path, [{'], ['.join(self.traits)}]
-                FROM _path
-                {join_query};
-            """
-        else:
-            create_view_query = """
-                CREATE VIEW data AS
-                SELECT _path.path
-                FROM _path;
-            """
-        self.execute(create_view_query)
-
     def update_trait(self):
         """
         Get all traits from the database
@@ -343,7 +313,6 @@ class TraitsDB:
         else:
             traits = []
         self.traits = [list(x.values())[0] for x in traits]
-        self.put_data_view()
 
     def create_trait_table(self, trait_name, value_type):
         """
