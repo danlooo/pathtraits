@@ -29,7 +29,7 @@ pathtraits get foo.txt
 
 ### Database path
 
-The databse is being created in your home directory by default at "~/.pathtraits.db".
+The database is being created in your home directory by default at "~/.pathtraits.db".
 One can change this by setting the environmental variable `PATHTRAITS_DB_PATH` to any other path with write permssions if needed.
 
 ## Developing
