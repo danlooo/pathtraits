@@ -14,9 +14,11 @@ Pathtraits can be either of type string, int, or real.
 # install
 python -m pip install pathtraits
 
+# optionally add dust to calculate size and number of files per meta.yml
+# https://github.com/bootandy/dust
+
 # create some test data
-echo "test" > foo.txt
-echo "test: true" > foo.txt.yml
+pathtraits create .
 
 # create database
 pathtraits batch .
