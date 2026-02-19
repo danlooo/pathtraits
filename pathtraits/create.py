@@ -59,7 +59,7 @@ def get_folder_context(path):
 
 def generate_metadata(path, needed_until:str=None, overwrite:bool = False, verbose: bool = False):
     """
-    Generates metadata.yaml. 
+    Generates meta.yml.
 
     :param needed_until: Until when this folder is expected to be needed, 
         can be a string in format '%Y-%m-%d' (e.g., "2026-12-31" ) or None.
