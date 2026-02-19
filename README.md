@@ -14,9 +14,11 @@ Pathtraits can be either of type string, int, or real.
 # install
 python -m pip install pathtraits
 
+# optionally add dust to calculate size and number of files per meta.yml
+# https://github.com/bootandy/dust
+
 # create some test data
-echo "test" > foo.txt
-echo "test: true" > foo.txt.yml
+pathtraits create .
 
 # create database
 pathtraits batch .
@@ -29,7 +31,7 @@ pathtraits get foo.txt
 
 ### Database path
 
-The databse is being created in your home directory by default at "~/.pathtraits.db".
+The database is being created in your home directory by default at "~/.pathtraits.db".
 One can change this by setting the environmental variable `PATHTRAITS_DB_PATH` to any other path with write permssions if needed.
 
 ## Developing
