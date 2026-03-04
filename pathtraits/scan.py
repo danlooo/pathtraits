@@ -12,7 +12,7 @@ from pathtraits.db import TraitsDB
 
 logger = logging.getLogger(__name__)
 
-yaml_re = re.compile(r"(\.)?(meta)?\.(yaml|yml)$")
+yaml_re = re.compile(r"(\.)?(meta|pathtraits)?\.(yaml|yml)$")
 
 
 # pylint: disable=W0102
