@@ -5,7 +5,7 @@ Module of the command line interface to pathtraits
 import logging
 import os
 import click
-from pathtraits import scan, access, create as _create
+from pathtraits import fuse, scan, access, create as _create
 
 logger = logging.getLogger(__name__)
 
@@ -86,15 +86,20 @@ def query(query_str, db_path):
 
 
 @main.command()
-@click.argument("path", required=True, type=click.Path(exists=True, file_okay=False, dir_okay=True))
+@click.argument(
+    "path", required=True, type=click.Path(exists=True, file_okay=False, dir_okay=True)
+)
 @click.option(
-    "--needed-until", "-nu",
+    "--needed-until",
+    "-nu",
     default=None,
     help="Optional account termination date (YYYY-MM-DD)",
 )
 @click.option(
-    "--overwrite", "-o",
-    is_flag=True, default=False,
+    "--overwrite",
+    "-o",
+    is_flag=True,
+    default=False,
     help="Overwrite existing metadata.",
 )
 @click.option("-v", "--verbose", is_flag=True, default=False)
@@ -103,6 +108,16 @@ def create(path, needed_until, overwrite, verbose):
     Update database once, searches for all directories recursively.
     """
     _create.generate_metadata(path, needed_until, overwrite, verbose)
+
+
+@main.command()
+@click.argument("mount_point", required=True, type=click.Path(exists=True))
+def mount(mount_point):
+    """
+    Mount paths arranged by thier traits using FUSE
+    """
+    fuse.mount(mount_point)
+
 
 if __name__ == "__main__":
     main()
