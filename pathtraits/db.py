@@ -411,7 +411,9 @@ class TraitsDB:
             traits = TraitsDB.flatten_dict(traits)
 
             # put path in db only if there are traits
-            path_id = self.put_path_id(os.path.abspath(pair.object_path))
+            abs_object_path = os.path.abspath(pair.object_path)
+            logger.debug("Put traits for %s", abs_object_path)
+            path_id = self.put_path_id(abs_object_path)
             for k, v in traits.items():
                 # same YAML key might have different value types
                 # Therefore, add type to key
