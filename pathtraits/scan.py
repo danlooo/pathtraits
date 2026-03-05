@@ -50,6 +50,7 @@ def scan_meta_yml(path, pathpairs=[], exclude_regex=None):
 def batch(path, db_path, exclude_regex, verbose):
     """
     Update database once, searches for all directories recursively.
+    Deletes existing database to ensure its synced with sidecar metadata files.
 
     :param path: path to scan in batch mode recursively
     :param db_path: path to the database
@@ -60,6 +61,11 @@ def batch(path, db_path, exclude_regex, verbose):
 
     if db_path is None:
         db_path = path + "/.pathtraits.db"
+
+    # database is just a cache, deleting specific rows is very slow.
+    if os.path.exists(db_path):
+        os.remove(db_path)
+
     db = TraitsDB(db_path)
     if exclude_regex is not None:
         exclude_regex = re.compile(exclude_regex)

@@ -10,6 +10,7 @@ import tempfile
 import pathtraits.db
 import pathtraits.scan
 import pathtraits.access
+import hashlib
 
 
 class TestMain(unittest.TestCase):
@@ -78,6 +79,17 @@ class TestMain(unittest.TestCase):
             "score_TEXT = 'zero' AND description_TEXT LIKE '%Germany%'"
         )
         self.assertEqual(len(q2), 1)
+
+    def test_idempotency_batch(self):
+        db_path = tempfile.mkstemp()[1]
+        pathtraits.scan.batch("test/example", db_path, "", False)
+        hash1 = hashlib.file_digest(open(db_path, "rb"), "sha256").hexdigest()
+
+        pathtraits.scan.batch("test/example", db_path, "", False)
+        hash2 = hashlib.file_digest(open(db_path, "rb"), "sha256").hexdigest()
+
+        os.remove(db_path)
+        self.assertEqual(hash1, hash2)
 
 
 if __name__ == "__main__":

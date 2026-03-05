@@ -34,6 +34,7 @@ def main():
 def batch(path, db_path, exclude_regex, verbose):
     """
     Update database once, searches for all directories recursively.
+    Deletes existing database to ensure its synced with sidecar metadata files.
     """
     scan.batch(path, db_path, exclude_regex, verbose)
 
@@ -86,15 +87,20 @@ def query(query_str, db_path):
 
 
 @main.command()
-@click.argument("path", required=True, type=click.Path(exists=True, file_okay=False, dir_okay=True))
+@click.argument(
+    "path", required=True, type=click.Path(exists=True, file_okay=False, dir_okay=True)
+)
 @click.option(
-    "--needed-until", "-nu",
+    "--needed-until",
+    "-nu",
     default=None,
     help="Optional account termination date (YYYY-MM-DD)",
 )
 @click.option(
-    "--overwrite", "-o",
-    is_flag=True, default=False,
+    "--overwrite",
+    "-o",
+    is_flag=True,
+    default=False,
     help="Overwrite existing metadata.",
 )
 @click.option("-v", "--verbose", is_flag=True, default=False)
@@ -103,6 +109,7 @@ def create(path, needed_until, overwrite, verbose):
     Update database once, searches for all directories recursively.
     """
     _create.generate_metadata(path, needed_until, overwrite, verbose)
+
 
 if __name__ == "__main__":
     main()
