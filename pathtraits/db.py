@@ -18,6 +18,7 @@ class TraitsDB:
     Database of pathtrait in 3NF with view of all joined trait tables
     """
 
+    db_path = None
     cursor = None
     traits = []
 
@@ -96,8 +97,8 @@ class TraitsDB:
         return dict(items)
 
     def __init__(self, db_path):
-        db_path = os.path.join(db_path)
-        self.cursor = sqlite3.connect(db_path, autocommit=True).cursor()
+        self.db_path = os.path.join(db_path)
+        self.cursor = sqlite3.connect(self.db_path, autocommit=True).cursor()
         self.cursor.row_factory = TraitsDB.row_factory
 
         init_path_table_query = """
@@ -256,6 +257,20 @@ class TraitsDB:
         res = response.fetchall()
         res = [x["path"] for x in res]
         return res
+
+    def info(self):
+        """
+        Prints info about this database
+
+        :param self: this database
+        """
+        res = {}
+        res["db_path"] = self.db_path
+        res["traits"] = self.traits
+        res["paths"] = len(self.get_paths("TRUE"))
+
+        if len(res) > 0:
+            print(yaml.safe_dump(res))
 
     def put_path_id(self, path):
         """

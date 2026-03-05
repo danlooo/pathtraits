@@ -5,7 +5,7 @@ Module of the command line interface to pathtraits
 import logging
 import os
 import click
-from pathtraits import scan, access, create as _create
+from pathtraits import scan, access, db, create as _create
 
 logger = logging.getLogger(__name__)
 
@@ -109,6 +109,19 @@ def create(path, needed_until, overwrite, verbose):
     Update database once, searches for all directories recursively.
     """
     _create.generate_metadata(path, needed_until, overwrite, verbose)
+
+
+@main.command()
+@click.option(
+    "--db-path",
+    default=DB_PATH,
+    type=click.Path(file_okay=True, dir_okay=False),
+)
+def info(db_path):
+    """
+    Displays info about the database
+    """
+    db.TraitsDB(db_path).info()
 
 
 if __name__ == "__main__":
